@@ -261,6 +261,10 @@ List all my repositories
 | `add_issue_dependency` | Make one issue depend on another |
 | `remove_issue_dependency` | Remove a dependency from an issue |
 | `list_repo_milestones` | List milestones with their IDs (use with `update_issue`) |
+| `create_milestone` | Create a milestone (`title`, optional `description`, `state`, `due_on` RFC3339). Returns numeric `id` for immediate use in `update_issue`. |
+| `get_milestone` | Get a single milestone by ID. |
+| `edit_milestone` | Edit a milestone (PATCH — only supplied fields change: `title`, `description`, `state`, `due_on`). The Forgejo API can replace a deadline but not clear it. |
+| `delete_milestone` | Delete a milestone by ID. Issues keep their other data and simply lose the milestone. |
 | `list_repo_labels` | List labels with their IDs. Merges org-level labels for org-owned repos (set `include_org_labels=false` to opt out). Each entry carries a `scope` field (`"repo"` or `"org"`). |
 | `list_org_labels` | List organization-level labels with their IDs (use with `add_issue_labels`, `remove_issue_labels`). |
 | `create_repo_label` | Create a repository label (`name`, `color` as 6-digit hex, optional `description`). Returns numeric `id` for immediate use in `add_issue_labels`. |

@@ -282,6 +282,7 @@ func RegisterTool(s *server.MCPServer) {
 	s.AddTool(ListOrgLabelsTool, ListOrgLabelsFn)
 	s.AddTool(SearchIssuesTool, SearchIssuesFn)
 	RegisterLabelTool(s)
+	RegisterMilestoneTool(s)
 	RegisterDependencyTool(s)
 }
 

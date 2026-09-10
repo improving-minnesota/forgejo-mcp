@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strconv"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/params"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/diff"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/ptr"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/to"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/params"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/diff"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/ptr"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/to"
 
 	forgejo_sdk "codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -47,7 +47,6 @@ var (
 		mcp.WithString("state", mcp.Description("State (open|closed|all)"), mcp.DefaultString("open")),
 		mcp.WithString("sort", mcp.Description("Sort (oldest|recentupdate|leastupdate|mostcomment)")),
 		mcp.WithString("milestone", mcp.Description(params.Milestone)),
-		mcp.WithString("labels", mcp.Description(params.Labels)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(20)),
 	)
@@ -163,7 +162,7 @@ func GetPullRequestByIndexFn(ctx context.Context, req mcp.CallToolRequest) (*mcp
 	}
 	pr, _, err := client.GetPullRequest(owner, repo, int64(index))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get pull request err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get pull request err: %w", err))
 	}
 	return to.TextResult(pr)
 }
@@ -177,19 +176,15 @@ func ListRepoPullRequestsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 		state = "open"
 	}
 	sort, _ := req.GetArguments()["sort"].(string)
+	milestone, _ := req.GetArguments()["milestone"].(string)
 	page, _ := to.Float64(req.GetArguments()["page"])
-	if !ok {
+	if page == 0 {
 		page = 1
 	}
 	limit, _ := to.Float64(req.GetArguments()["limit"])
-	if !ok {
+	if limit == 0 {
 		limit = 20
 	}
-
-	// Convert milestone from string to int64 if provided
-	// Note: Not using milestoneID since it's not supported in the current Forgejo SDK
-
-	// Labels - not used directly in query per API, will be handled in the API call
 
 	opt := forgejo_sdk.ListPullRequestsOptions{
 		State: forgejo_sdk.StateType(state),
@@ -200,8 +195,13 @@ func ListRepoPullRequestsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 		},
 	}
 
-	// Only set milestone if provided and valid
-	// Note: Not using milestone as it's not supported in the current Forgejo SDK
+	if milestone != "" {
+		milestoneID, err := strconv.ParseInt(milestone, 10, 64)
+		if err != nil {
+			return to.ErrorResult(fmt.Errorf("invalid milestone ID: %w", err))
+		}
+		opt.Milestone = milestoneID
+	}
 
 	client, err := forgejo.Client(ctx)
 	if err != nil {
@@ -209,7 +209,7 @@ func ListRepoPullRequestsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	}
 	prs, _, err := client.ListRepoPullRequests(owner, repo, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get pull request list err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get pull request list err: %w", err))
 	}
 	return to.TextResult(prs)
 }
@@ -235,7 +235,7 @@ func CreatePullRequestFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	}
 	pr, _, err := client.CreatePullRequest(owner, repo, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("create pull request err: %v", err))
+		return to.ErrorResult(fmt.Errorf("create pull request err: %w", err))
 	}
 	return to.TextResult(pr)
 }
@@ -268,7 +268,7 @@ func UpdatePullRequestFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	if milestone != "" {
 		milestoneID, err := strconv.ParseInt(milestone, 10, 64)
 		if err != nil {
-			return to.ErrorResult(fmt.Errorf("invalid milestone ID: %v", err))
+			return to.ErrorResult(fmt.Errorf("invalid milestone ID: %w", err))
 		}
 		opt.Milestone = milestoneID
 	}
@@ -279,7 +279,7 @@ func UpdatePullRequestFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	}
 	pr, _, err := client.EditPullRequest(owner, repo, int64(index), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("update pull request err: %v", err))
+		return to.ErrorResult(fmt.Errorf("update pull request err: %w", err))
 	}
 	return to.TextResult(pr)
 }
@@ -311,7 +311,7 @@ func ListPullReviewsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 	}
 	reviews, _, err := client.ListPullReviews(owner, repo, int64(index), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list pull reviews err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list pull reviews err: %w", err))
 	}
 	return to.TextResult(reviews)
 }
@@ -329,7 +329,7 @@ func GetPullReviewFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 	}
 	review, _, err := client.GetPullReview(owner, repo, int64(index), int64(id))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get pull review err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get pull review err: %w", err))
 	}
 	return to.TextResult(review)
 }
@@ -366,7 +366,7 @@ func MergePullRequestFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	}
 	merged, resp, err := client.MergePullRequest(owner, repo, int64(index), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("merge pull request err: %v", err))
+		return to.ErrorResult(fmt.Errorf("merge pull request err: %w", err))
 	}
 	if !merged && !mergeWhenChecks {
 		statusCode := 0
@@ -412,7 +412,7 @@ func ListPullRequestFilesFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.
 	}
 	files, _, err := client.ListPullRequestFiles(owner, repo, int64(index), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list pull request files err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list pull request files err: %w", err))
 	}
 	return to.TextResult(files)
 }
@@ -431,7 +431,7 @@ func GetPullRequestDiffFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	}
 	diffBytes, _, err := client.GetPullRequestDiff(owner, repo, int64(index), forgejo_sdk.PullRequestDiffOptions{})
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get pull request diff err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get pull request diff err: %w", err))
 	}
 
 	body := string(diffBytes)
@@ -460,7 +460,7 @@ func ListPullReviewCommentsFn(ctx context.Context, req mcp.CallToolRequest) (*mc
 	}
 	comments, _, err := client.ListPullReviewComments(owner, repo, int64(index), int64(id))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list pull review comments err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list pull review comments err: %w", err))
 	}
 	return to.TextResult(comments)
 }

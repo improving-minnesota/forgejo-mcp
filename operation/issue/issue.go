@@ -4,19 +4,40 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/params"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/to"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/params"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/to"
 
 	forgejo_sdk "codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
+
+// issueSortValues are the Forgejo API's valid `sort` values for
+// GET /repos/{owner}/{repo}/issues (see routers/api/v1/repo/issue.go's
+// ListIssues swagger comment). "nearduedate"/"farduedate" are what daikon#93
+// needs for EDF selection; the SDK (codeberg.org/mvdkleijn/forgejo-sdk v3.0.0)
+// has no Sort field on ListIssueOption, so this list is duplicated here
+// rather than sourced from the SDK.
+var issueSortValues = []string{
+	"relevance", "latest", "oldest", "recentupdate", "leastupdate",
+	"mostcomment", "leastcomment", "nearduedate", "farduedate",
+}
+
+func isValidIssueSort(s string) bool {
+	for _, v := range issueSortValues {
+		if s == v {
+			return true
+		}
+	}
+	return false
+}
 
 // ScopedLabel wraps forgejo_sdk.Label with a scope marker so callers of
 // list_repo_labels and list_org_labels can tell repo- and org-scoped
@@ -28,24 +49,30 @@ type ScopedLabel struct {
 
 // fetchOrgLabels GETs /orgs/{org}/labels via the raw-HTTP helper and
 // stamps each result with scope="org". A 404 is mapped to an empty slice
-// by DoJSONList. 401/403 surface as forgejo.ErrUnauthorized.
-func fetchOrgLabels(ctx context.Context, org string, page, limit int) ([]ScopedLabel, error) {
+// by DoJSONListWithHeader. 401/403 surface as forgejo.ErrUnauthorized.
+//
+// The response headers come back alongside the labels because the bounded
+// org-labels resource pages: it requests exactly the caller's limit and reads
+// Link/X-Total-Count to decide whether more rows exist. Tool callers that
+// enumerate without bounds can discard them.
+func fetchOrgLabels(ctx context.Context, org string, page, limit int) ([]ScopedLabel, http.Header, error) {
 	if page < 1 {
 		page = 1
 	}
 	if limit < 1 {
 		limit = 100
 	}
-	path := fmt.Sprintf("/orgs/%s/labels?page=%d&limit=%d", org, page, limit)
+	path := forgejo.APIPath("orgs", org, "labels") + fmt.Sprintf("?page=%d&limit=%d", page, limit)
 	var raw []*forgejo_sdk.Label
-	if err := forgejo.DoJSONList(ctx, http.MethodGet, path, &raw); err != nil {
-		return nil, err
+	header, err := forgejo.DoJSONListWithHeader(ctx, http.MethodGet, path, &raw)
+	if err != nil {
+		return nil, header, err
 	}
 	out := make([]ScopedLabel, 0, len(raw))
 	for _, l := range raw {
 		out = append(out, ScopedLabel{Label: l, Scope: "org"})
 	}
-	return out, nil
+	return out, header, nil
 }
 
 const (
@@ -64,6 +91,7 @@ const (
 	ListRepoMilestonesToolName = "list_repo_milestones"
 	ListRepoLabelsToolName     = "list_repo_labels"
 	ListOrgLabelsToolName      = "list_org_labels"
+	SearchIssuesToolName       = "search_issues"
 )
 
 var (
@@ -84,6 +112,7 @@ var (
 		mcp.WithString("type", mcp.Description("Type (issues|pulls)")),
 		mcp.WithString("milestones", mcp.Description("Milestone names/IDs (comma-separated)")),
 		mcp.WithString("labels", mcp.Description("Labels (comma-separated)")),
+		mcp.WithString("sort", mcp.Description("Server-side sort order. One of: relevance, latest, oldest, recentupdate, leastupdate, mostcomment, leastcomment, nearduedate, farduedate. Default is the API's own default (latest).")),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(20)),
 	)
@@ -117,6 +146,8 @@ var (
 		mcp.WithString("assignee", mcp.Description("Assignee username (convenience for a single user; equivalent to a one-element 'assignees')")),
 		mcp.WithString("assignees", mcp.Description("Assignee usernames (comma-separated). Overrides 'assignee' if both are set. Pass an empty string to clear all assignees.")),
 		mcp.WithString("milestone", mcp.Description(params.Milestone)),
+		mcp.WithString("due_date", mcp.Description("Set the issue's due date (RFC3339, e.g. 2026-08-20T00:00:00Z). Mutually exclusive with 'clear_due_date'; setting both is an error.")),
+		mcp.WithBoolean("clear_due_date", mcp.Description("Clear the issue's due date. Mutually exclusive with 'due_date'.")),
 	)
 
 	AddIssueLabelsTools = mcp.NewTool(
@@ -210,6 +241,27 @@ var (
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(100)),
 	)
+
+	SearchIssuesTool = mcp.NewTool(
+		SearchIssuesToolName,
+		mcp.WithDescription("Search issues across every repository belonging to one owner (organization or user), without naming a repo. "+
+			"Returns a response envelope {issues, page, limit, count, has_next, total_count} rather than a bare array. "+
+			"has_next true means a further page may exist; re-issue the call with page incremented to fetch it. "+
+			"total_count, when present, is the total number of matching issues across all pages (from Forgejo's X-Total-Count header); it is omitted rather than 0 when the header is unavailable. "+
+			"Each issue identifies its source repository only via its html_url/url field; there is no separate repository field. "+
+			"Use list_repo_issues instead when the repo is already known."),
+		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
+		mcp.WithString("state", mcp.Description("State (open|closed|all)"), mcp.DefaultString("open")),
+		mcp.WithString("type", mcp.Description("Type (issues|pulls)")),
+		mcp.WithString("labels", mcp.Description("Labels (comma-separated); OR semantics — an issue matching any listed label is returned")),
+		mcp.WithString("milestones", mcp.Description("Milestone names/IDs (comma-separated)")),
+		mcp.WithString("q", mcp.Description(params.Keyword+" (matches issue title, body, and comments)")),
+		mcp.WithString("created_by", mcp.Description("Filter by creator username")),
+		mcp.WithString("assigned_by", mcp.Description("Filter by assignee username")),
+		mcp.WithString("mentioned_by", mcp.Description("Filter by mentioned username")),
+		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
+		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(20)),
+	)
 )
 
 func RegisterTool(s *server.MCPServer) {
@@ -228,6 +280,9 @@ func RegisterTool(s *server.MCPServer) {
 	s.AddTool(ListRepoMilestonesTool, ListRepoMilestonesFn)
 	s.AddTool(ListRepoLabelsTool, ListRepoLabelsFn)
 	s.AddTool(ListOrgLabelsTool, ListOrgLabelsFn)
+	s.AddTool(SearchIssuesTool, SearchIssuesFn)
+	RegisterLabelTool(s)
+	RegisterDependencyTool(s)
 }
 
 func GetIssueByIndexFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -242,7 +297,7 @@ func GetIssueByIndexFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 	}
 	issue, _, err := client.GetIssue(owner, repo, int64(index))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get issue err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get issue err: %w", err))
 	}
 	return to.TextResult(issue)
 }
@@ -251,6 +306,12 @@ func ListRepoIssuesFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	log.Debugf("Called ListRepoIssuesFn")
 	owner, _ := req.GetArguments()["owner"].(string)
 	repo, _ := req.GetArguments()["repo"].(string)
+	if owner == "" {
+		return to.ErrorResult(fmt.Errorf("owner is required"))
+	}
+	if repo == "" {
+		return to.ErrorResult(fmt.Errorf("repo is required; for owner-wide listing across repositories use search_issues instead"))
+	}
 	state, ok := req.GetArguments()["state"].(string)
 	if !ok {
 		state = "open"
@@ -258,6 +319,7 @@ func ListRepoIssuesFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	issueType, _ := req.GetArguments()["type"].(string)
 	milestones, _ := req.GetArguments()["milestones"].(string)
 	labels, _ := req.GetArguments()["labels"].(string)
+	sort, _ := req.GetArguments()["sort"].(string)
 	page, _ := to.Float64(req.GetArguments()["page"])
 	if page == 0 {
 		page = 1
@@ -265,6 +327,10 @@ func ListRepoIssuesFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	limit, _ := to.Float64(req.GetArguments()["limit"])
 	if limit == 0 {
 		limit = 20
+	}
+
+	if sort != "" && !isValidIssueSort(sort) {
+		return to.ErrorResult(fmt.Errorf("invalid sort %q: must be one of %s", sort, strings.Join(issueSortValues, ", ")))
 	}
 
 	// Create ListIssueOption according to the Forgejo API
@@ -278,9 +344,9 @@ func ListRepoIssuesFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		},
 	}
 
-	// Set issue type if provided (convert to string parameters)
+	// Set issue type if provided
 	if issueType != "" {
-		// Note: Using optional parameters since IssueType is not directly assignable
+		opt.Type = forgejo_sdk.IssueType(issueType)
 	}
 
 	// Set milestones if provided
@@ -293,15 +359,174 @@ func ListRepoIssuesFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		opt.Labels = strings.Split(labels, ",")
 	}
 
+	// The Forgejo API supports `sort` server-side on this endpoint (including
+	// nearduedate/farduedate — see routers/api/v1/repo/issue.go's ListIssues
+	// swagger comment), but the vendored SDK's ListIssueOption has no Sort
+	// field to carry it (v3.0.0 QueryEncode never emits &sort=...). Go around
+	// the SDK client with the raw-HTTP helper for this one param, same
+	// pattern as fetchOrgLabels above.
+	//
+	// DoJSON, not DoJSONList: DoJSONList maps a 404 to an empty list, which is
+	// right for endpoints where "none exist" really does 404 (fetchOrgLabels),
+	// but /repos/{owner}/{repo}/issues returns 200 [] for a repo with no
+	// issues — a 404 there means the repository does not exist. Swallowing it
+	// would make a typo'd repo name read as "no issues", and only when the
+	// caller happened to pass `sort`.
+	if sort != "" {
+		query := opt.QueryEncode() + "&sort=" + url.QueryEscape(sort)
+		path := forgejo.APIPath("repos", owner, repo, "issues") + "?" + query
+		var issues []*forgejo_sdk.Issue
+		if err := forgejo.DoJSON(ctx, http.MethodGet, path, nil, &issues); err != nil {
+			return to.ErrorResult(fmt.Errorf("get issues list err: %w", err))
+		}
+		return to.TextResult(issues)
+	}
+
 	client, err := forgejo.Client(ctx)
 	if err != nil {
 		return to.ErrorResult(err)
 	}
 	issues, _, err := client.ListRepoIssues(owner, repo, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get issues list err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get issues list err: %w", err))
 	}
 	return to.TextResult(issues)
+}
+
+// searchIssuesEnvelope is the response shape for search_issues: the issues
+// together with a continuation signal, per docs/design/output-bounding.md.
+type searchIssuesEnvelope struct {
+	Issues     []*forgejo_sdk.Issue `json:"issues"`
+	Page       int                  `json:"page"`
+	Limit      int                  `json:"limit"`
+	Count      int                  `json:"count"`
+	HasNext    bool                 `json:"has_next"`
+	TotalCount *int                 `json:"total_count,omitempty"`
+}
+
+func SearchIssuesFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	log.Debugf("Called SearchIssuesFn")
+	args := req.GetArguments()
+	owner, _ := args["owner"].(string)
+	if owner == "" {
+		return to.ErrorResult(fmt.Errorf("owner is required"))
+	}
+
+	state, ok := args["state"].(string)
+	if !ok || state == "" {
+		state = "open"
+	}
+	issueType, _ := args["type"].(string)
+	labels, _ := args["labels"].(string)
+	milestones, _ := args["milestones"].(string)
+	keyword, _ := args["q"].(string)
+	createdBy, _ := args["created_by"].(string)
+	assignedBy, _ := args["assigned_by"].(string)
+	mentionedBy, _ := args["mentioned_by"].(string)
+
+	page, _ := to.Float64(args["page"])
+	if page < 1 {
+		page = 1
+	}
+	limit, _ := to.Float64(args["limit"])
+	if limit < 1 {
+		limit = 20
+	}
+	requestedLimit := int(limit)
+
+	// Instance pagination ceiling (design.md Decision 3): known ceilings are
+	// enforced by rejecting an over-ceiling request before the upstream call
+	// rather than silently clamping it, so the response never claims a limit
+	// larger than what was actually applied. An unknown ceiling (settings
+	// endpoint unreachable/403) falls back to the same-limit next-page probe
+	// below.
+	ceiling, ceilingKnown := forgejo.MaxResponseItems(ctx)
+	if ceilingKnown && requestedLimit > ceiling {
+		return to.ErrorResult(fmt.Errorf(
+			"limit %d exceeds this instance's maximum of %d (max_response_items); retry with limit <= %d",
+			requestedLimit, ceiling, ceiling,
+		))
+	}
+	// effectiveLimit is the limit actually sent upstream. It feeds both the
+	// SDK call and the response envelope from the same variable so the two
+	// can never diverge; see the effective-limit reporting requirement in
+	// specs/search-issues/spec.md.
+	effectiveLimit := requestedLimit
+
+	opt := forgejo_sdk.ListIssueOption{
+		Owner: owner,
+		State: forgejo_sdk.StateType(state),
+		ListOptions: forgejo_sdk.ListOptions{
+			Page:     int(page),
+			PageSize: effectiveLimit,
+		},
+	}
+	if issueType != "" {
+		opt.Type = forgejo_sdk.IssueType(issueType)
+	}
+	if labels != "" {
+		opt.Labels = strings.Split(labels, ",")
+	}
+	if milestones != "" {
+		opt.Milestones = strings.Split(milestones, ",")
+	}
+	if keyword != "" {
+		opt.KeyWord = keyword
+	}
+	if createdBy != "" {
+		opt.CreatedBy = createdBy
+	}
+	if assignedBy != "" {
+		opt.AssignedBy = assignedBy
+	}
+	if mentionedBy != "" {
+		opt.MentionedBy = mentionedBy
+	}
+
+	client, err := forgejo.Client(ctx)
+	if err != nil {
+		return to.ErrorResult(err)
+	}
+	issues, resp, err := client.ListIssues(opt)
+	if err != nil {
+		return to.ErrorResult(fmt.Errorf("search issues err: %w", err))
+	}
+	count := len(issues)
+	var totalCount *int
+	if resp != nil {
+		totalCount = forgejo.TotalCountPtr(resp.Header)
+	}
+
+	// has_next (design.md Decision 3, revised): when the ceiling is known,
+	// the rejection above guarantees effectiveLimit <= ceiling, so the
+	// request was honored in full and the simple count == limit rule is
+	// sound again — a full page may have more, a short page cannot. That
+	// rule was unsound only because nothing clamped limit client-side; now
+	// something does. When the ceiling is unknown, fall back to the
+	// same-limit next-page probe: never limit+1, since Forgejo derives page
+	// offsets from page size and a changed page size would make later pages
+	// skip rows.
+	var hasNext bool
+	if ceilingKnown {
+		hasNext = count == effectiveLimit
+	} else if count > 0 {
+		probeOpt := opt
+		probeOpt.Page = int(page) + 1
+		nextIssues, _, err := client.ListIssues(probeOpt)
+		if err != nil {
+			return to.ErrorResult(fmt.Errorf("probe next issues page err: %w", err))
+		}
+		hasNext = len(nextIssues) > 0
+	}
+
+	return to.TextResult(searchIssuesEnvelope{
+		Issues:     issues,
+		Page:       int(page),
+		Limit:      effectiveLimit,
+		Count:      count,
+		HasNext:    hasNext,
+		TotalCount: totalCount,
+	})
 }
 
 func CreateIssueFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -321,7 +546,7 @@ func CreateIssueFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	}
 	issue, _, err := client.CreateIssue(owner, repo, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("create issue err: %v", err))
+		return to.ErrorResult(fmt.Errorf("create issue err: %w", err))
 	}
 	return to.TextResult(issue)
 }
@@ -342,7 +567,7 @@ func CreateIssueCommentFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	}
 	comment, _, err := client.CreateIssueComment(owner, repo, int64(index), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("create issue comment err: %v", err))
+		return to.ErrorResult(fmt.Errorf("create issue comment err: %w", err))
 	}
 	return to.TextResult(comment)
 }
@@ -357,6 +582,8 @@ func UpdateIssueFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	assignee, _ := req.GetArguments()["assignee"].(string)
 	assigneesRaw, assigneesProvided := req.GetArguments()["assignees"].(string)
 	milestone, _ := req.GetArguments()["milestone"].(string)
+	dueDate, _ := req.GetArguments()["due_date"].(string)
+	clearDueDate, _ := req.GetArguments()["clear_due_date"].(bool)
 
 	opt := forgejo_sdk.EditIssueOption{}
 
@@ -378,9 +605,26 @@ func UpdateIssueFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	if milestone != "" {
 		milestoneID, err := strconv.ParseInt(milestone, 10, 64)
 		if err != nil {
-			return to.ErrorResult(fmt.Errorf("invalid milestone ID: %v", err))
+			return to.ErrorResult(fmt.Errorf("invalid milestone ID: %w", err))
 		}
 		opt.Milestone = &milestoneID
+	}
+	// due_date / clear_due_date map to the Forgejo API's due_date / unset_due_date
+	// EditIssueOption fields (routers/api/v1/repo/issue.go's EditIssue: setting
+	// unset_due_date=true clears the deadline; due_date sets it; both absent
+	// leaves it unchanged). Mutually exclusive — ambiguous intent otherwise.
+	switch {
+	case clearDueDate && dueDate != "":
+		return to.ErrorResult(fmt.Errorf("cannot set 'due_date' and 'clear_due_date' at the same time"))
+	case clearDueDate:
+		remove := true
+		opt.RemoveDeadline = &remove
+	case dueDate != "":
+		parsed, err := time.Parse(time.RFC3339, dueDate)
+		if err != nil {
+			return to.ErrorResult(fmt.Errorf("invalid due_date format (expected RFC3339): %w", err))
+		}
+		opt.Deadline = &parsed
 	}
 
 	client, err := forgejo.Client(ctx)
@@ -389,7 +633,7 @@ func UpdateIssueFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	}
 	issue, _, err := client.EditIssue(owner, repo, int64(index), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("update issue err: %v", err))
+		return to.ErrorResult(fmt.Errorf("update issue err: %w", err))
 	}
 	return to.TextResult(issue)
 }
@@ -410,7 +654,7 @@ func AddIssueLabelsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		labelStr = strings.TrimSpace(labelStr)
 		labelID, err := strconv.ParseInt(labelStr, 10, 64)
 		if err != nil {
-			return to.ErrorResult(fmt.Errorf("invalid label ID '%s': %v - labels must be numeric IDs", labelStr, err))
+			return to.ErrorResult(fmt.Errorf("invalid label ID '%s': %w - labels must be numeric IDs", labelStr, err))
 		}
 		labelIDs = append(labelIDs, labelID)
 	}
@@ -426,13 +670,13 @@ func AddIssueLabelsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	}
 	_, _, err = client.AddIssueLabels(owner, repo, int64(index), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("add issue labels err: %v", err))
+		return to.ErrorResult(fmt.Errorf("add issue labels err: %w", err))
 	}
 
 	// Fetch the updated issue to return it with the new labels
 	issue, _, err := client.GetIssue(owner, repo, int64(index))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get updated issue err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get updated issue err: %w", err))
 	}
 	return to.TextResult(issue)
 }
@@ -453,18 +697,18 @@ func RemoveIssueLabelsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 		labelStr = strings.TrimSpace(labelStr)
 		labelID, err := strconv.ParseInt(labelStr, 10, 64)
 		if err != nil {
-			return to.ErrorResult(fmt.Errorf("invalid label ID '%s': %v - labels must be numeric IDs", labelStr, err))
+			return to.ErrorResult(fmt.Errorf("invalid label ID '%s': %w - labels must be numeric IDs", labelStr, err))
 		}
 		_, err = client.DeleteIssueLabel(owner, repo, int64(index), labelID)
 		if err != nil {
-			return to.ErrorResult(fmt.Errorf("remove issue label err: %v", err))
+			return to.ErrorResult(fmt.Errorf("remove issue label err: %w", err))
 		}
 	}
 
 	// Fetch the updated issue to return it with the updated labels
 	issue, _, err := client.GetIssue(owner, repo, int64(index))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get updated issue err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get updated issue err: %w", err))
 	}
 	return to.TextResult(issue)
 }
@@ -493,7 +737,7 @@ func IssueStateChangeFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	}
 	issue, _, err := client.EditIssue(owner, repo, int64(index), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("change issue state err: %v", err))
+		return to.ErrorResult(fmt.Errorf("change issue state err: %w", err))
 	}
 	return to.TextResult(issue)
 }
@@ -525,14 +769,14 @@ func ListIssueCommentsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	if since != "" {
 		sinceTime, err := time.Parse(time.RFC3339, since)
 		if err != nil {
-			return to.ErrorResult(fmt.Errorf("invalid since time format (expected RFC3339): %v", err))
+			return to.ErrorResult(fmt.Errorf("invalid since time format (expected RFC3339): %w", err))
 		}
 		opt.Since = sinceTime
 	}
 	if before != "" {
 		beforeTime, err := time.Parse(time.RFC3339, before)
 		if err != nil {
-			return to.ErrorResult(fmt.Errorf("invalid before time format (expected RFC3339): %v", err))
+			return to.ErrorResult(fmt.Errorf("invalid before time format (expected RFC3339): %w", err))
 		}
 		opt.Before = beforeTime
 	}
@@ -543,7 +787,7 @@ func ListIssueCommentsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	}
 	comments, _, err := client.ListIssueComments(owner, repo, int64(index), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list issue comments err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list issue comments err: %w", err))
 	}
 	return to.TextResult(comments)
 }
@@ -560,7 +804,7 @@ func GetIssueCommentFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 	}
 	comment, _, err := client.GetIssueComment(owner, repo, int64(commentID))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get issue comment err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get issue comment err: %w", err))
 	}
 	return to.TextResult(comment)
 }
@@ -581,7 +825,7 @@ func EditIssueCommentFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	}
 	comment, _, err := client.EditIssueComment(owner, repo, int64(commentID), opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("edit issue comment err: %v", err))
+		return to.ErrorResult(fmt.Errorf("edit issue comment err: %w", err))
 	}
 	return to.TextResult(comment)
 }
@@ -598,7 +842,7 @@ func DeleteIssueCommentFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	}
 	_, err = client.DeleteIssueComment(owner, repo, int64(commentID))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("delete issue comment err: %v", err))
+		return to.ErrorResult(fmt.Errorf("delete issue comment err: %w", err))
 	}
 	return to.TextResult("Delete comment success")
 }
@@ -633,7 +877,7 @@ func ListRepoMilestonesFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Ca
 	}
 	milestones, _, err := client.ListRepoMilestones(owner, repo, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list repo milestones err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list repo milestones err: %w", err))
 	}
 	return to.TextResult(milestones)
 }
@@ -669,7 +913,7 @@ func ListRepoLabelsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	}
 	repoLabels, _, err := client.ListRepoLabels(owner, repo, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list repo labels err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list repo labels err: %w", err))
 	}
 	merged := make([]ScopedLabel, 0, len(repoLabels))
 	for _, l := range repoLabels {
@@ -677,9 +921,9 @@ func ListRepoLabelsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	}
 
 	if includeOrg {
-		orgLabels, oerr := fetchOrgLabels(ctx, owner, int(page), int(limit))
+		orgLabels, _, oerr := fetchOrgLabels(ctx, owner, int(page), int(limit))
 		if oerr != nil {
-			return to.ErrorResult(fmt.Errorf("list org labels err: %v", oerr))
+			return to.ErrorResult(fmt.Errorf("list org labels err: %w", oerr))
 		}
 		merged = append(merged, orgLabels...)
 	}
@@ -700,9 +944,9 @@ func ListOrgLabelsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToo
 		limit = 100
 	}
 
-	labels, err := fetchOrgLabels(ctx, org, int(page), int(limit))
+	labels, _, err := fetchOrgLabels(ctx, org, int(page), int(limit))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list org labels err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list org labels err: %w", err))
 	}
 	return to.TextResult(labels)
 }

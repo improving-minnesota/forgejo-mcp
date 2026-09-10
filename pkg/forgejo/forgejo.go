@@ -6,15 +6,15 @@ import (
 	"sync"
 	"time"
 
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/flag"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/flag"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
 
 	"codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
 )
 
 var (
-	client     *forgejo.Client
-	clientOnce sync.Once
+	client   *forgejo.Client
+	clientMu sync.Mutex
 )
 
 type contextKey string
@@ -54,35 +54,53 @@ func Client(ctx context.Context) (*forgejo.Client, error) {
 		return c, nil
 	}
 
-	clientOnce.Do(func() {
-		if client == nil {
-			// Use configured user agent or default to forgejo-mcp/<version>
-			userAgent := flag.UserAgent
-			if userAgent == "" {
-				userAgent = "forgejo-mcp/" + flag.Version
-			}
+	// No per-request credential. Whether the operator's own configured
+	// credential may stand in for it is the policy in credential.go: allowed
+	// for stdio, and on a network transport only where the operator has opted
+	// in explicitly. The bind address does not enter into it -- a loopback
+	// listener is refused exactly like any other, because a reverse proxy in
+	// front of one rewrites Host to the proxied target by default, so every
+	// observable looks local on a request that came from the internet.
+	if _, err := tokenForRequest(ctx); err != nil {
+		log.ErrorCtx(ctx, "Refusing to serve request with the server's own credential",
+			log.ErrorField(err),
+		)
+		return nil, err
+	}
 
-			c, err := forgejo.NewClient(flag.URL,
-				forgejo.SetToken(flag.Token),
-				forgejo.SetUserAgent(userAgent),
-			)
-			if err != nil {
-				log.Error("Failed to create Forgejo client",
-					log.SanitizedURLField("url", flag.URL),
-					log.ErrorField(err),
-				)
-				// We still fatal here because if the singleton can't be created at startup,
-				// the server is useless in stdio mode.
-				log.Fatalf("create forgejo client err: %v", err)
-			}
-			client = c
-			log.Info("Successfully created Forgejo client",
-				log.SanitizedURLField("url", flag.URL),
-				log.BoolField("token_configured", flag.Token != ""),
-				log.StringField("user_agent", userAgent),
-			)
-		}
-	})
+	clientMu.Lock()
+	defer clientMu.Unlock()
+
+	if client != nil {
+		return client, nil
+	}
+
+	// Use configured user agent or default to forgejo-mcp/<version>
+	userAgent := flag.UserAgent
+	if userAgent == "" {
+		userAgent = "forgejo-mcp/" + flag.Version
+	}
+
+	c, err := forgejo.NewClient(flag.URL,
+		forgejo.SetToken(flag.Token),
+		forgejo.SetUserAgent(userAgent),
+	)
+	if err != nil {
+		log.Error("Failed to create Forgejo client",
+			log.SanitizedURLField("url", flag.URL),
+			log.ErrorField(err),
+		)
+		// Never fatal: the caller decides. At startup, RegisterTool's connection
+		// test turns this into a clean "connection test failed" exit; in tests it
+		// stays an ordinary error instead of killing the test binary.
+		return nil, fmt.Errorf("create forgejo client: %w", err)
+	}
+	client = c
+	log.Info("Successfully created Forgejo client",
+		log.SanitizedURLField("url", flag.URL),
+		log.BoolField("token_configured", flag.Token != ""),
+		log.StringField("user_agent", userAgent),
+	)
 	return client, nil
 }
 
@@ -115,7 +133,7 @@ func VerifyConnection() error {
 			log.DurationField("duration", duration),
 			log.ErrorField(err),
 		)
-		return fmt.Errorf("failed to connect to Forgejo instance at %s: %v", flag.URL, err)
+		return fmt.Errorf("failed to connect to Forgejo instance at %s: %w", flag.URL, err)
 	}
 
 	log.Info("Connection verification successful",
@@ -147,7 +165,7 @@ func HealthCheck() error {
 			log.DurationField("duration", duration),
 			log.ErrorField(err),
 		)
-		return fmt.Errorf("health check failed: %v", err)
+		return fmt.Errorf("health check failed: %w", err)
 	}
 
 	log.Debug("Health check successful",

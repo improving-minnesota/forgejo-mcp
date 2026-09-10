@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/params"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/to"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/params"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/to"
 
 	forgejo_sdk "codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -45,11 +45,11 @@ func ListRepoCommitsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 		shaStr = sha
 	}
 	page, _ := to.Float64(req.GetArguments()["page"])
-	if !ok {
+	if page == 0 {
 		page = 1
 	}
 	limit, _ := to.Float64(req.GetArguments()["limit"])
-	if !ok {
+	if limit == 0 {
 		limit = 100
 	}
 	opt := forgejo_sdk.ListCommitOptions{
@@ -66,7 +66,7 @@ func ListRepoCommitsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallT
 	}
 	commits, _, err := client.ListRepoCommits(owner, repo, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list repo commits error: %v", err))
+		return to.ErrorResult(fmt.Errorf("list repo commits error: %w", err))
 	}
 	return to.TextResult(commits)
 }

@@ -1,5 +1,29 @@
 # Forgejo MCP Server
 
+> **📦 This project has moved.** Development, issues, releases, and container
+> images now live at
+> **<https://git.b4mad.industries/agentic-forges/forgejo-mcp>**.
+> The Codeberg repository at `codeberg.org/goern/forgejo-mcp` remains only as a
+> read-only mirror, and its container registry no longer publishes images —
+> pull from `git.b4mad.industries/agentic-forges/forgejo-mcp` instead. Issue
+> numbers are preserved across the move. Contributions from humans **and**
+> AI agents are welcome at the new location.
+>
+> ```bash
+> git clone https://git.b4mad.industries/agentic-forges/forgejo-mcp.git
+> ```
+>
+> If you have a remote or a bookmark pointing at `forgejo.b4mad.net`, that is
+> the **same** forge under its previous name — renamed 2026-07-29, not moved
+> again. The old name still resolves and serves port 2222 with the same host
+> key, so existing clones keep working; repoint them at your leisure:
+>
+> ```bash
+> git remote set-url origin \
+>   ssh://git@git.b4mad.industries:2222/agentic-forges/forgejo-mcp.git
+> ssh-keyscan -p 2222 git.b4mad.industries >> ~/.ssh/known_hosts
+> ```
+
 Connect your AI assistant to Forgejo repositories. Manage issues, pull requests, files, and more through natural language.
 
 ## What It Does
@@ -11,7 +35,7 @@ Forgejo MCP Server is an integration plugin that connects Forgejo with [Model Co
 - "Create an issue titled 'Bug in login page'"
 - "Show me open pull requests in my-org/my-repo"
 - "Get the contents of README.md from the main branch"
-- "Show me the latest Actions workflow runs in goern/forgejo-mcp"
+- "Show me the latest Actions workflow runs in agentic-forges/forgejo-mcp"
 
 ## Quick Start
 
@@ -20,18 +44,23 @@ Forgejo MCP Server is an integration plugin that connects Forgejo with [Model Co
 **Option A: Using Go (Recommended)**
 
 ```bash
-git clone https://codeberg.org/goern/forgejo-mcp.git
+git clone https://git.b4mad.industries/agentic-forges/forgejo-mcp.git
 cd forgejo-mcp
 go install .
 ```
 
 Ensure `$GOPATH/bin` (typically `~/go/bin`) is in your PATH.
 
-> **Note:** `go install codeberg.org/goern/forgejo-mcp/v2@latest` does not work currently. See [Known Issues](#known-issues).
+> **Note:** `go install` from the module path works from the first release
+> after the module was renamed (see [Known Issues](#known-issues)):
+>
+> ```bash
+> go install git.b4mad.industries/agentic-forges/forgejo-mcp/v3@latest
+> ```
 
 **Option B: Download Binary**
 
-Download the latest release from the [releases page](https://codeberg.org/goern/forgejo-mcp/releases).
+Download the latest release from the [releases page](https://git.b4mad.industries/agentic-forges/forgejo-mcp/releases).
 
 For Arch Linux, use your favorite AUR helper:
 
@@ -56,17 +85,17 @@ yay -S forgejo-mcp-bin  # uses pre-built binary
 **Option D: Container image**
 
 A signed multi-stage OCI image is published on every release to
-`codeberg.org/goern/forgejo-mcp`. Run the server without building from source:
+`git.b4mad.industries/agentic-forges/forgejo-mcp`. Run the server without building from source:
 
 ```bash
 # Latest release
 podman run --rm -i \
   -e FORGEJO_ACCESS_TOKEN="<your personal access token>" \
-  codeberg.org/goern/forgejo-mcp:latest \
+  git.b4mad.industries/agentic-forges/forgejo-mcp:latest \
   --transport stdio --url https://your-forgejo-instance.org
 
 # Or pin a specific version
-podman run --rm -i codeberg.org/goern/forgejo-mcp:v2.24.0 --help
+podman run --rm -i git.b4mad.industries/agentic-forges/forgejo-mcp:v2.24.0 --help
 ```
 
 | Tag             | Meaning                                                         |
@@ -141,7 +170,48 @@ You can run a single centralized `forgejo-mcp` instance and let each client prov
 
 See [demos/multi-tenant-http.md](demos/multi-tenant-http.md) for a copy-pasteable walkthrough.
 
-> Design rationale, token-resolution rules, and request-isolation guarantees: see the `stateless-http-auth` OpenSpec change (`openspec/changes/archive/`).
+#### Exposing the server to a network
+
+By default the `sse` and `http` transports listen on loopback only, so nothing outside
+this machine can reach them. This follows the Model Context Protocol's guidance for
+locally-run servers, and it is a change in behaviour: earlier versions listened on
+every network interface. Both loopback families are bound, so a client that resolves
+`localhost` to either `127.0.0.1` or `::1` connects.
+
+**If you run the server in a container, or serve remote clients, you must now say so
+explicitly.** The default will not accept connections from outside the machine — or,
+in a container, from outside the container:
+
+- set `--host` to an address the network can reach (`0.0.0.0` for all interfaces,
+  which is the usual choice inside a container);
+- and set `--allowed-hosts` to the host names your clients use. This is required, not
+  optional: the server refuses to start on a network-reachable address without it,
+  rather than starting and rejecting every request.
+
+Requests are refused with `403 Forbidden` when their `Host` header is not one you
+declared. Loopback names are always accepted on a loopback listener, so declaring a
+proxy's hostname does not stop you connecting directly from the same machine.
+
+**Browser clients.** A request carrying an `Origin` header is refused unless that
+origin is listed in `--allowed-origins`, which is empty by default. Origins are
+compared in full — scheme, host and port — because an `Origin`'s port belongs to the
+page making the request, not to this server. Requests with no `Origin` header at all
+are unaffected, which is the normal case: an MCP client is not a browser.
+
+#### Authentication on `sse` and `http`
+
+On these transports every request must carry its own `Authorization` header. A request
+without one is refused with `401 Unauthorized`, rather than being served using the
+server's own configured token. This is what the multi-tenant setup above expects
+anyway, and it is why that setup is safe to expose.
+
+On `stdio` the configured token still stands in for an absent header exactly as
+before. Nothing about `stdio` changes.
+
+If you run a single-user deployment over `sse` or `http` and want the old behaviour,
+`--allow-operator-token-fallback` restores it. Understand what it means before you use
+it: any client that can reach the port acts as the identity behind your token, without
+presenting a credential. The startup log says so, loudly, whenever it is on.
 
 **For SSE mode** (legacy HTTP-based):
 
@@ -184,13 +254,33 @@ List all my repositories
 | `search_users` | Search for users |
 | **Repositories** | |
 | `list_my_repos` | List all repositories you own |
+| `get_repo` | Get a single repository by owner and name |
 | `create_repo` | Create a new repository |
 | `fork_repo` | Fork a repository |
+| `edit_repo` | Edit repository settings. Only fields you pass change; omitted fields are left unchanged. Providing no fields is an error. |
 | `search_repos` | Search for repositories |
+| **Topics** | |
+| `list_repo_topics` | List a repository's topics. Bounded by `page` (default 1) + `limit` (default 100); returns `{topics, page, limit, count}`. |
+| `set_repo_topics` | Replace all topics. `topics` is a required comma-separated string; an empty string clears. Invalid names are rejected before the request. |
+| `add_repo_topic` | Add one topic |
+| `delete_repo_topic` | Delete one topic |
 | **Branches** | |
 | `list_branches` | List all branches in a repository |
 | `create_branch` | Create a new branch |
 | `delete_branch` | Delete a branch |
+| **Branch Protection** | |
+| `list_branch_protections` | List a repository's branch protection rules. Bounded by `page` (1-based) + `limit` (page size); the response echoes `page`/`limit` so callers can fetch the next page. |
+| `get_branch_protection` | Get a single rule by `rule` name |
+| `create_branch_protection` | Create a rule. Requires `branch_name`; `status_check_contexts` is a comma-separated list of required checks (e.g. `"ci/build,ci/test"`). |
+| `edit_branch_protection` | Edit a rule by `rule` name. Only fields you pass change; omitted fields are left unchanged. |
+| `delete_branch_protection` | Delete a rule by `rule` name |
+| **Webhooks** | |
+| `list_repo_hooks` | List repository webhooks. Bounded by `page` (default 1) + `limit` (default 30, no server-imposed ceiling); returns `total_count` when Forgejo reports `X-Total-Count`. |
+| `get_repo_hook` | Get a single repository webhook by ID |
+| `create_repo_hook` | Create a repository webhook. The secret is accepted but never echoed in the response. |
+| `edit_repo_hook` | Edit a repository webhook. Only fields you pass change; omitted fields are left unchanged. |
+| `delete_repo_hook` | Delete a repository webhook by ID |
+| `test_repo_hook` | Trigger a test delivery for a repository webhook — WARNING: triggers a live HTTP delivery |
 | **Files** | |
 | `get_file_content` | Get the content of a file. Optional `start_line`/`end_line` request a 1-indexed inclusive line range (clamps to file extent; ignored when `with_metadata=true`). |
 | `create_file` | Create a new file |
@@ -199,16 +289,29 @@ List all my repositories
 | **Commits** | |
 | `list_repo_commits` | List commits in a repository |
 | **Issues** | |
-| `list_repo_issues` | List issues in a repository |
+| `list_repo_issues` | List issues in a repository (page/limit). Optional `sort` orders server-side: `relevance`, `latest`, `oldest`, `recentupdate`, `leastupdate`, `mostcomment`, `leastcomment`, `nearduedate`, `farduedate` (the last two are the due-date directions). |
+| `search_issues` | Search issues across every repository of one owner (page/limit); returns `{issues,page,limit,count,has_next,total_count}` — `total_count` is present only when Forgejo reports `X-Total-Count` |
 | `get_issue_by_index` | Get a specific issue |
 | `create_issue` | Create a new issue |
 | `add_issue_labels` | Add labels to an issue (requires numeric label IDs) |
 | `remove_issue_labels` | Remove labels from an issue (requires numeric label IDs) |
-| `update_issue` | Update an existing issue (requires numeric milestone ID) |
+| `update_issue` | Update an existing issue (requires numeric milestone ID). `due_date` sets the deadline (RFC3339); `clear_due_date=true` removes it. The two are mutually exclusive — setting both is an error, and omitting both leaves the deadline unchanged. |
 | `issue_state_change` | Open or close an issue |
+| `list_issue_dependencies` | List issues the given issue depends on. Bounded by `page` (1-based) + `limit` (page size); the response echoes `page`/`limit` so callers can fetch the next page. |
+| `list_issue_dependents` | List issues that depend on the given issue. Bounded by `page` (1-based) + `limit` (page size); the response echoes `page`/`limit` so callers can fetch the next page. |
+| `add_issue_dependency` | Make one issue depend on another |
+| `remove_issue_dependency` | Remove a dependency from an issue |
 | `list_repo_milestones` | List milestones with their IDs (use with `update_issue`) |
 | `list_repo_labels` | List labels with their IDs. Merges org-level labels for org-owned repos (set `include_org_labels=false` to opt out). Each entry carries a `scope` field (`"repo"` or `"org"`). |
 | `list_org_labels` | List organization-level labels with their IDs (use with `add_issue_labels`, `remove_issue_labels`). |
+| `create_repo_label` | Create a repository label (`name`, `color` as 6-digit hex, optional `description`). Returns numeric `id` for immediate use in `add_issue_labels`. |
+| `edit_repo_label` | Edit a repository label (PATCH — only supplied fields change: `name`, `color`, `description`). |
+| `delete_repo_label` | Delete a repository label. Refuses by default when the label is in use (reports count); set `delete_mode=force` to override. |
+| `get_repo_label` | Get a single repository label by numeric `id`. |
+| `create_org_label` | Create an organization-level label. Same fields as `create_repo_label`. |
+| `edit_org_label` | Edit an organization-level label (PATCH semantics). |
+| `delete_org_label` | Delete an organization-level label. In-use guard counts across visible org repos (best-effort); `delete_mode=force` overrides. |
+| `get_org_label` | Get a single organization-level label by numeric `id`. |
 | **Comments** | |
 | `list_issue_comments` | List comments on an issue or PR |
 | `get_issue_comment` | Get a specific comment |
@@ -231,6 +334,12 @@ List all my repositories
 | `dispatch_workflow` | Trigger a workflow run via `workflow_dispatch` event |
 | `list_workflow_runs` | List workflow runs with optional filtering by status, event, or SHA |
 | `get_workflow_run` | Get details of a specific workflow run by ID |
+| `list_action_run_jobs` | List jobs for a Forgejo v16+ workflow run with client-side `page` and `limit` bounds |
+| `get_action_job_logs` | Read a Forgejo v16+ job log with resumable `offset` and `max_bytes` bounds; defaults to the tail |
+| `cancel_workflow_run` | Cancel a pending or running workflow run. Already-finished runs also return success (HTTP 204); the run is left unchanged |
+| `delete_workflow_run` | Delete a completed workflow run. A live run is an API error. Removes the run and its job logs; Forgejo marks that run's artifacts deleted |
+| `list_action_run_artifacts` | List artifacts of a workflow run. Server-paged via `page`/`limit` (default 30, max 50); optional `name` filter. Envelope `{artifacts, page, limit, count, total_count?}` |
+| `get_action_artifact` | Get metadata for one Actions artifact. Does not download the zip |
 | **Organizations** | |
 | `search_org_teams` | Search for teams in an organization |
 | **Time Tracking** | |
@@ -248,13 +357,13 @@ List all my repositories
 | `list_issue_attachments` | List attachments on an issue or PR |
 | `get_issue_attachment` | Get metadata for a single issue/PR attachment |
 | `download_issue_attachment` | Download an issue/PR attachment (inline if < 1 MiB; metadata + URL otherwise) |
-| `create_issue_attachment` | Upload a new attachment to an issue or PR (base64 content) |
+| `create_issue_attachment` | Upload a new attachment to an issue or PR (base64 content or a file path on the MCP host) |
 | `edit_issue_attachment` | Rename an issue/PR attachment |
 | `delete_issue_attachment` | Delete an issue/PR attachment |
 | `list_comment_attachments` | List attachments on an issue/PR comment |
 | `get_comment_attachment` | Get metadata for a single comment attachment |
 | `download_comment_attachment` | Download a comment attachment (inline if < 1 MiB; metadata + URL otherwise) |
-| `create_comment_attachment` | Upload a new attachment to an issue/PR comment (base64 content) |
+| `create_comment_attachment` | Upload a new attachment to an issue/PR comment (base64 content or a file path on the MCP host) |
 | `edit_comment_attachment` | Rename a comment attachment |
 | `delete_comment_attachment` | Delete a comment attachment |
 | **Releases** | |
@@ -269,9 +378,16 @@ List all my repositories
 | `list_release_attachments` | List attachments on a release (response fetched in full, sliced client-side) |
 | `get_release_attachment` | Get metadata for a single release attachment |
 | `download_release_attachment` | Download a release attachment (inline if < 1 MiB; metadata + URL otherwise) |
-| `create_release_attachment` | Upload a new attachment to a release (base64 content) |
+| `create_release_attachment` | Upload a new attachment to a release (base64 content or a file path on the MCP host) |
 | `edit_release_attachment` | Rename a release attachment |
 | `delete_release_attachment` | Delete a release attachment — destructive |
+| **Wiki** | |
+| `list_wiki_pages` | List pages using `page`/`limit`; returns `has_next` and, when Forgejo reports `X-Total-Count`, `total_count`. `total_count` counts upstream's raw wiki tree entries, so it can exceed the number of pages listed on a wiki with subdirectories — an upper bound, not an exact total. |
+| `get_wiki_page` | Read decoded Markdown; optional `start_line`/`end_line`, always returns `total_lines`. |
+| `get_wiki_revisions` | List revision history using `page`/`limit`; returns `has_next` and `total_count`, the page's total revision count as reported in the response body. |
+| `create_wiki_page` | Create a page and return its server-normalized `page_name`; slash-separated titles are a flat subpage naming convention (no hierarchy and no automatic parent page), and an existing title is overwritten. |
+| `update_wiki_page` | Update content/title by normalized `page_name`; last writer wins. |
+| `delete_wiki_page` | Delete a page by normalized `page_name`. |
 | **Server** | |
 | `get_forgejo_mcp_server_version` | Get the MCP server version |
 
@@ -292,8 +408,23 @@ Resources that embed a list (issue, pr) cap the embedded array at 30 items. When
 | `forgejo://repo/{owner}/{repo}/commit/{sha}` | Commit metadata | Immutable per sha. Returns JSON + markdown sidecar. sha must be 40 hex chars. |
 | `forgejo://repo/{owner}/{repo}/commit/{sha}/status` | application/json | Combined CI status for a sha: aggregate state + bounded per-context statuses (cap 30, sentinel names list tool `get_commit_statuses`). |
 | `forgejo://repo/{owner}/{repo}/issue/{index}` | application/json (+ text/markdown sidecar) | Issue metadata + rendered body + bounded recent comments (cap 30, sentinel names `list_issue_comments`). |
+| `forgejo://repo/{owner}/{repo}/issues{?state,labels,page,limit}` | application/json | Bounded list of issues as rows — index, title, state, author, labels, assignees, milestone, comment count, timestamps, due date — and **no bodies**. `state` ∈ {open, closed, all} (default `open`); `labels` comma-separated; cap 30, sentinel names `list_repo_issues`. Read the single-issue resource for a body. |
 | `forgejo://repo/{owner}/{repo}/{kind}/{index}/comment/{id}` | application/json (+ text/markdown sidecar) | Single comment by id; kind ∈ {issue, pr}. |
+| `forgejo://repo/{owner}/{repo}/{kind}/{index}/comments{?page,limit}` | application/json | Bounded comment thread with **full bodies** (the single-issue resource excerpts them at 200 chars); kind ∈ {issue, pr}; cap 30, sentinel names `list_issue_comments`. |
 | `forgejo://repo/{owner}/{repo}/pr/{index}` | application/json (+ text/markdown sidecar) | PR metadata, head/base refs, mergeability, bounded recent comments (cap 30, sentinel `list_issue_comments`) and reviews (cap 30, sentinel `list_pull_reviews`). |
+| `forgejo://repo/{owner}/{repo}/label/{id}` | application/json | Single repository label by numeric id. |
+| `forgejo://repo/{owner}/{repo}/labels{?page,limit}` | application/json | Bounded list of repository labels (cap 30, sentinel names `list_repo_labels`). |
+| `forgejo://org/{org}/labels{?page,limit}` | application/json | Bounded list of organization-level labels (cap 30, sentinel names `list_org_labels`). |
+| `forgejo://repo/{owner}/{repo}/wiki/{pageName}` | application/json (+ text/markdown sidecar) | Wiki page with bounded revisions and Markdown capped at 1 MiB. Use the returned normalized `page_name`; encode a literal `/` as `%2F` and spaces as `%20` in the URI (do not double-encode an already normalized name). |
+
+Slash-separated titles such as `Guides/Setup` are useful as a subpage naming convention,
+but Forgejo stores the pages in a flat list: it neither creates `Guides` automatically nor
+records a parent-child relationship. Create the parent separately when readers need it, and
+always address subsequent calls with the normalized `page_name` returned by create or list.
+The wiki REST behavior documented here was live-tested against Forgejo
+`15.0.4+gitea-1.22.0`; the complete MCP demo was replayed successfully against
+`16.0.0+gitea-1.22.0`. This is the tested range, not a guarantee for every intermediate
+or differently proxied deployment.
 
 ### Client Compatibility
 
@@ -337,6 +468,28 @@ forgejo-mcp --cli list_workflow_runs \
   --args '{"owner":"goern","repo":"forgejo-mcp","status":"failure"}' \
   --output=text
 
+# List jobs and inspect the tail of a failed job (Forgejo v16+)
+forgejo-mcp --cli list_action_run_jobs \
+  --args '{"owner":"goern","repo":"forgejo-mcp","run_id":123}' \
+  --output=text
+forgejo-mcp --cli get_action_job_logs \
+  --args '{"owner":"goern","repo":"forgejo-mcp","job_id":456,"max_bytes":32768}' \
+  --output=text
+
+# Forgejo's run-wide ZIP log endpoint has no Range support. Enumerate jobs and
+# fetch their bounded plaintext logs instead.
+
+# List artifacts of a run, then read one artifact's metadata (no zip download)
+forgejo-mcp --cli list_action_run_artifacts \
+  --args '{"owner":"goern","repo":"forgejo-mcp","run_id":123,"limit":30}' \
+  --output=text
+forgejo-mcp --cli get_action_artifact \
+  --args '{"owner":"goern","repo":"forgejo-mcp","artifact_id":789}' \
+  --output=text
+
+# cancel_workflow_run is 204 even when the run already finished.
+# delete_workflow_run only succeeds for a completed run; a live run is an error.
+
 # Show a tool's parameters
 forgejo-mcp --cli create_issue --help
 
@@ -359,10 +512,37 @@ You can configure the server using command-line arguments or environment variabl
 | `--transport` | - | Transport mode: `stdio`, `sse`, or `http` |
 | `--sse-port` | - | Port for SSE mode (default: 8080) |
 | `--http-port` | - | Port for streamable HTTP mode (default: 8080) |
+| `--host` | `FORGEJO_MCP_HOST` | Address the `sse` and `http` transports bind to (default: `127.0.0.1`, reachable from this machine only) |
+| `--allowed-hosts` | `FORGEJO_MCP_ALLOWED_HOSTS` | Comma-separated `Host` names this server answers to; required when `--host` is not loopback |
+| `--allowed-origins` | `FORGEJO_MCP_ALLOWED_ORIGINS` | Comma-separated web origins allowed to send an `Origin` header, as full origins (`https://console.example.org`). Empty by default |
+| `--allow-operator-token-fallback` | `FORGEJO_MCP_ALLOW_OPERATOR_TOKEN_FALLBACK` | On `sse`/`http`, serve requests with no `Authorization` header using this server's own token. Off by default |
 | `--cli` | - | Enter CLI mode for direct tool invocation |
 | `--user-agent` | `FORGEJO_USER_AGENT` | HTTP User-Agent header (default: `forgejo-mcp/<version>`) |
+| - | `FORGEJO_MCP_ALLOW_FILE_PATH_UPLOAD` | Allow `file_path` attachment uploads to read the host filesystem (`1`/`true`/`yes`/`on`; off by default) |
+| - | `FORGEJO_MCP_UPLOAD_ROOT` | Confine `file_path` uploads to this directory (default: anywhere the process can read) |
 
 Command-line arguments take priority over environment variables.
+
+### Uploading attachments from the host filesystem
+
+`create_issue_attachment`, `create_comment_attachment`, and
+`create_release_attachment` accept either base64 `content` or a `file_path` on
+the machine running `forgejo-mcp`. The path form avoids base64-expanding a large
+release artifact through the MCP transport.
+
+It is **off by default**, because it hands whatever drives the MCP client the
+ability to read any file the server process can read — a prompt-injected agent
+could upload `~/.ssh/id_ed25519` as a public release asset. Turn it on
+deliberately, and prefer confining it:
+
+```bash
+export FORGEJO_MCP_ALLOW_FILE_PATH_UPLOAD=1
+export FORGEJO_MCP_UPLOAD_ROOT=/home/you/build/dist   # optional but recommended
+```
+
+With `FORGEJO_MCP_UPLOAD_ROOT` set, a path that resolves outside that directory
+— by being absolute, by `..`, or through a symlink — is rejected before anything
+is read. Base64 `content` uploads are unaffected by either variable.
 
 ## Verifying Releases
 
@@ -407,22 +587,25 @@ cosign version
 
 The normative source for the cosign public key is the
 [`op1st-emea-b4mad`](https://codeberg.org/operate-first/op1st-emea-b4mad)
-GitOps repo — same source of truth that provisions the `cosign-signing-key`
-Secret in the `op1st-pipelines` namespace where the release pipeline runs.
+GitOps repo — same source of truth that provisions the
+`cosign-signing-key-artifacts` Secret in the `op1st-pipelines` namespace
+where the release pipeline runs. This is the **artifact-signing** key that
+signs release blobs (`checksums.txt.sig`); it is distinct from the
+**image-signing** key `cosign-signing-key-images.pub` used in §5–§6 below.
 Two ways to fetch it:
 
 **Branch-tip (live, follows future key rotations):**
 
 ```bash
 curl -sSfL -o cosign.pub \
-  https://codeberg.org/operate-first/op1st-emea-b4mad/raw/branch/main/manifests/applications/op1st-pipelines-tokens/cosign-signing-key.pub
+  https://codeberg.org/operate-first/op1st-emea-b4mad/raw/branch/main/manifests/applications/op1st-pipelines-tokens/cosign-signing-key-artifacts.pub
 ```
 
 **Commit-pinned (tamper-evident, recommended for CI/scripts):**
 
 ```bash
 curl -sSfL -o cosign.pub \
-  https://codeberg.org/operate-first/op1st-emea-b4mad/raw/commit/8a3c55e5b8c892754fd61f9141dc4817a6915f45/manifests/applications/op1st-pipelines-tokens/cosign-signing-key.pub
+  https://codeberg.org/operate-first/op1st-emea-b4mad/raw/commit/cd3715fa8283a2069a2e3e299744a7b55b1b0260/manifests/applications/op1st-pipelines-tokens/cosign-signing-key-artifacts.pub
 ```
 
 The commit-pinned permalink hashes its content into the URL — if anyone
@@ -438,7 +621,7 @@ its signature, and the binary archive:
 ```bash
 TAG=v2.23.1
 VERSION="${TAG#v}"
-BASE="https://codeberg.org/goern/forgejo-mcp/releases/download/${TAG}"
+BASE="https://git.b4mad.industries/agentic-forges/forgejo-mcp/releases/download/${TAG}"
 
 curl -sSfLO "${BASE}/forgejo-mcp_${VERSION}_checksums.txt"
 curl -sSfLO "${BASE}/forgejo-mcp_${VERSION}_checksums.txt.sig"
@@ -507,7 +690,7 @@ Tekton Chains builder.
 
 ### 6. Verify the container image
 
-The `codeberg.org/goern/forgejo-mcp` application image ([Option D](#1-install))
+The `git.b4mad.industries/agentic-forges/forgejo-mcp` application image ([Option D](#1-install))
 is signed by the same `cosign-signing-key-images` key as the release-tools
 image, carries an attached CycloneDX SBOM, and gets SLSA v1.0 provenance from
 Tekton Chains. Reuse the `cosign-images.pub` key fetched above.
@@ -518,7 +701,7 @@ Verify the signature:
 IMAGE_TAG=v2.24.0   # substitute the release you are pulling
 cosign verify \
   --key cosign-images.pub \
-  "codeberg.org/goern/forgejo-mcp:${IMAGE_TAG}" \
+  "git.b4mad.industries/agentic-forges/forgejo-mcp:${IMAGE_TAG}" \
   | jq .
 ```
 
@@ -528,7 +711,7 @@ Verify the SLSA provenance attestation:
 cosign verify-attestation \
   --type slsaprovenance \
   --key cosign-images.pub \
-  "codeberg.org/goern/forgejo-mcp:${IMAGE_TAG}" \
+  "git.b4mad.industries/agentic-forges/forgejo-mcp:${IMAGE_TAG}" \
   | jq .
 ```
 
@@ -538,7 +721,7 @@ Verify and download the signed CycloneDX SBOM attestation:
 cosign verify-attestation \
   --type cyclonedx \
   --key cosign-images.pub \
-  "codeberg.org/goern/forgejo-mcp:${IMAGE_TAG}" \
+  "git.b4mad.industries/agentic-forges/forgejo-mcp:${IMAGE_TAG}" \
   | jq -r '.payload | @base64d | fromjson | .predicate' > forgejo-mcp.cdx.json
 ```
 
@@ -588,8 +771,10 @@ forgejo-mcp --user-agent "forgejo-mcp/1.0.0" --transport sse --url <url> --token
 
 ## Getting Help
 
-- [Report issues](https://codeberg.org/goern/forgejo-mcp/issues)
-- [View source code](https://codeberg.org/goern/forgejo-mcp)
+- [Report issues](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues) — bugs, questions, feature requests
+- **Found a security problem?** Do not use the issue tracker. See [SECURITY.md](SECURITY.md) for how to report it privately.
+- [View source code](https://git.b4mad.industries/agentic-forges/forgejo-mcp)
+- [Chat on Matrix](https://matrix.to/#/%23forgejo-mcp:b4mad.net) — `#forgejo-mcp:b4mad.net`
 
 This repository is also mirrored on [Radicle](https://radicle.xyz/) — a peer-to-peer code collaboration network. Clone via:
 
@@ -603,7 +788,17 @@ See [DEVELOPER.md](DEVELOPER.md) for build instructions, architecture overview, 
 
 ## Known Issues
 
-- **`go install ...@latest` fails** — The `go.mod` contains a `replace` directive (for a forked Forgejo SDK), which prevents remote `go install`. Use the clone-and-build workflow shown in [Quick Start](#quick-start) instead. Tracked in [#67](https://codeberg.org/goern/forgejo-mcp/issues/67).
+- **`go install ...@latest` needs a post-rename release** — The Go module path
+  was `codeberg.org/goern/forgejo-mcp/v2` until the forge move; Go resolves
+  modules by the path declared in `go.mod`, so the
+  `git.b4mad.industries/...` path only becomes installable once a release is
+  tagged carrying the renamed `go.mod`. Until then, use the clone-and-build
+  workflow shown in [Quick Start](#quick-start). The old
+  `go install codeberg.org/goern/forgejo-mcp/v2@latest` still resolves against
+  the read-only Codeberg mirror, but that mirror lags behind the current
+  release — do not rely on it. The earlier `replace`-directive blocker
+  ([#67](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/67)) is
+  gone; `go.mod` no longer contains one.
 
 ## Contributors
 
@@ -635,6 +830,7 @@ forgejo-mcp is shaped by everyone who files issues, writes code, reviews PRs, an
 | [Massimo Fraschetti](https://codeberg.org/fraschetti) | Contributions |
 | [synath](https://codeberg.org/synath) (David Paul Turley) | Repository-scoped token support via `ServerVersion` probe (PR #112); merge status-code check (PR #113); Claude Desktop Extension (.mcpb) packaging (PR #118) |
 | [BrilliantKahn](https://codeberg.org/BrilliantKahn) | `get_file_content` plain-text default (PR #116); `list_repo_contents` and `get_repo_tree` tools (PR #117). **First-ever open source contribution** — welcome aboard! 🎉 |
+| [pisco](https://git.b4mad.industries/pisco) (Marco Pisco) | `file_path` uploads for issue, comment, and release attachments, with streaming multipart so large release assets no longer round-trip through base64 (PR #481) |
 
 ### Community contributors
 
@@ -657,6 +853,7 @@ Issue reporters and discussion participants who shaped the direction of the proj
 | [janbaer](https://codeberg.org/janbaer) | Filed #98 (reply to review comment) |
 | [fraschm98](https://codeberg.org/fraschm98) | Early issue reports |
 | [heathen711](https://codeberg.org/heathen711) | Filed #106 (issue/comment attachments — since implemented); shaped the 1 MiB inline cap + `browser_download_url` fall-through design |
+| [chris420](https://git.b4mad.industries/chris420) (Chris Oloff) | Filed #452 (org-wide issue search — since implemented as `search_issues`); design review on PR #458 that replaced the next-page probe with instance-ceiling enforcement, and caught the response envelope misreporting its own `limit` |
 
 ### Cyborg contributors
 
@@ -667,7 +864,7 @@ This project also received contributions from AI coding agents — submitted as 
 | [brenner-axiom](https://codeberg.org/brenner-axiom) (b4-dev, B4arena) | AI dev agent | Organization management tools (PR #94); showboat demos (PR #97); `list_repo_milestones`, `list_repo_labels` tools (PR #83); race condition fix (PR #78); contributors docs (PR #87, #88); filed #76; code reviews |
 | opencode | AI dev agent | Pull request reviews and comments support (PR #51) |
 | claude-code | AI dev agent | `get_file_content` plain-text default and `list_repo_contents`/`get_repo_tree` tools, paired with [BrilliantKahn](https://codeberg.org/BrilliantKahn) (PR #116, #117) |
-| b4mad-release-bot | Release automation | Automated changelog and release tagging |
+| b4mad-release-agent | Release automation | Automated changelog and release tagging |
 | the #B4mad Renovate bot | Dependency updates | Automated dependency upgrades |
 
 Want to contribute? Open an issue or pull request — all are welcome.

@@ -3,12 +3,13 @@ package repo
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/resource"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/resource"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
 
 	forgejo_sdk "codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -48,7 +49,7 @@ func TestRepoResourceHandler_HappyPath(t *testing.T) {
 			"login": "goern",
 		},
 		"description":       "MCP server for Forgejo",
-		"html_url":          "https://codeberg.org/goern/forgejo-mcp",
+		"html_url":          "https://git.b4mad.industries/agentic-forges/forgejo-mcp",
 		"default_branch":    "main",
 		"fork":              false,
 		"archived":          false,
@@ -107,7 +108,8 @@ func TestRepoResourceHandler_403(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for 403")
 	}
-	if re, ok := err.(*resource.ResourceError); ok {
+	var re *resource.ResourceError
+	if errors.As(err, &re) {
 		if re.Code != -32002 {
 			t.Errorf("expected code -32002, got %d", re.Code)
 		}
@@ -123,7 +125,8 @@ func TestRepoResourceHandler_404(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error for 404")
 	}
-	if re, ok := err.(*resource.ResourceError); ok {
+	var re *resource.ResourceError
+	if errors.As(err, &re) {
 		if re.Code != -32003 {
 			t.Errorf("expected code -32003, got %d", re.Code)
 		}

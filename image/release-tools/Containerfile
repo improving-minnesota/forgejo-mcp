@@ -1,18 +1,25 @@
 # release-tools image
 # Versions are pinned via ARGs sourced from VERSIONS.md.
 # Base: Project Hummingbird hi/go (registry.access.redhat.com/hi/go)
-# TAG-FLOATING RISK: only `latest-builder` is available from Hummingbird as of 2026-05-25.
-# Switch to `1.26-builder` or `1.26.3-builder` when Hummingbird publishes a specific tag.
+# Pinned to a specific version tag (not `latest-builder`) so Renovate has a
+# version signal to automerge on, per .renovaterc's release-tools/base-image-bump rule.
 
-ARG HI_GO_TAG=latest-builder
-ARG HI_GO_DIGEST=sha256:95239123cf489a054cfbfd361282893f0324b9a088790d1e2777a2472b8bfbe3
+ARG HI_GO_TAG=1.26.5-builder
+ARG HI_GO_DIGEST=sha256:aef155087940a9221c59ca48ad8af371a4c1a46b05f0283737149cb00ef484b3
 ARG SYFT_VERSION=v1.44.0
 ARG SYFT_SHA256=0e91737aee2b5baf1d255b959630194a302335d848ff97bb07921eb6205b5f5a
 ARG GORELEASER_VERSION=v2.16.0
 ARG GORELEASER_SHA256=eaae05b5eba07533bd0f06846b68c808399504784df00c62eb219541fc04e5e2
-ARG COSIGN_VERSION=v3.0.6
+# SYFT_VERSION and GORELEASER_VERSION are intentionally NOT annotated for
+# Renovate: each is paired with a hand-recorded *_SHA256 above, which Renovate
+# cannot recompute, so a version-only PR would ship an image that fails its own
+# `sha256sum -c` gate. Bump those two by hand, checksum and all.
+# renovate: datasource=github-releases depName=sigstore/cosign
+ARG COSIGN_VERSION=v3.1.3
+# GOVULNCHECK_VERSION is a floating `latest` — nothing for Renovate to pin.
 ARG GOVULNCHECK_VERSION=latest
-ARG GO_LICENSES_VERSION=v1.6.0
+# renovate: datasource=go depName=github.com/google/go-licenses
+ARG GO_LICENSES_VERSION=v2.0.1
 ARG MCPB_VERSION=2.1.2
 
 # ---------------------------------------------------------------------------
@@ -133,7 +140,7 @@ RUN ln -sf /usr/local/lib/node_modules/@fission-ai/openspec/bin/openspec.js /usr
  && chmod +x /usr/local/lib/node_modules/@fission-ai/openspec/bin/openspec.js
 
 # OCI image labels
-LABEL org.opencontainers.image.source="https://codeberg.org/goern/forgejo-mcp" \
+LABEL org.opencontainers.image.source="https://git.b4mad.industries/agentic-forges/forgejo-mcp" \
       org.opencontainers.image.version="${GORELEASER_VERSION}" \
       org.opencontainers.image.vendor="Operate First, by #B4mad" \
       org.opencontainers.image.licenses="Apache-2.0" \

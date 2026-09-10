@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/params"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/ptr"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/to"
 	forgejo_sdk "codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/params"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/ptr"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/to"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -20,6 +20,8 @@ const (
 	CreateRepoToolName  = "create_repo"
 	ForkRepoToolName    = "fork_repo"
 	ListMyReposToolName = "list_my_repos"
+	GetRepoToolName     = "get_repo"
+	EditRepoToolName    = "edit_repo"
 )
 
 var (
@@ -60,6 +62,12 @@ func RegisterTool(s *server.MCPServer) {
 	s.AddTool(CreateRepoTool, CreateRepoFn)
 	s.AddTool(ForkRepoTool, ForkRepoFn)
 	s.AddTool(ListMyReposTool, ListMyReposFn)
+	s.AddTool(GetRepoTool, GetRepoFn)
+	s.AddTool(EditRepoTool, EditRepoFn)
+	s.AddTool(ListRepoTopicsTool, ListRepoTopicsFn)
+	s.AddTool(SetRepoTopicsTool, SetRepoTopicsFn)
+	s.AddTool(AddRepoTopicTool, AddRepoTopicFn)
+	s.AddTool(DeleteRepoTopicTool, DeleteRepoTopicFn)
 
 	// File
 	s.AddTool(GetFileContentTool, GetFileContentFn)
@@ -126,7 +134,7 @@ func CreateRepoFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 		repo, _, err = client.CreateRepo(opt)
 	}
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("create repo err: %v", err))
+		return to.ErrorResult(fmt.Errorf("create repo err: %w", err))
 	}
 	return to.TextResult(repo)
 }
@@ -161,7 +169,7 @@ func ForkRepoFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResu
 	}
 	_, _, err = client.CreateFork(user, repo, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("fork repository error %v", err))
+		return to.ErrorResult(fmt.Errorf("fork repository error %w", err))
 	}
 	return to.TextResult("Fork success")
 }
@@ -188,7 +196,7 @@ func ListMyReposFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	}
 	repos, _, err := client.ListMyRepos(opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list my repositories error: %v", err))
+		return to.ErrorResult(fmt.Errorf("list my repositories error: %w", err))
 	}
 
 	return to.TextResult(repos)

@@ -1,7 +1,7 @@
 # Projects Support Implementation Plan for forgejo-mcp
 
 ## Issue Reference
-- **Issue**: [#42 - Add support for Projects](https://codeberg.org/goern/forgejo-mcp/issues/42)
+- **Issue**: [#42 - Add support for Projects](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/42)
 - **Requester**: BasdP (Bas du Pré)
 - **Use Case**: "Let AI clean up my projects, for instance to ask it to sort the project board by milestone"
 
@@ -123,7 +123,7 @@ func (c *Client) ListProjectBoards(projectID int64, opts ListOptions) ([]*Projec
 
 **Register in `/operation/operation.go`:**
 ```go
-import "codeberg.org/goern/forgejo-mcp/operation/project"
+import "git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/project"
 
 func RegisterTool(s *server.MCPServer) {
     // ... existing registrations

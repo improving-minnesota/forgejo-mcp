@@ -34,7 +34,8 @@ Forgejo Actions workflow that runs on Codeberg's hosted runner whenever a
 Parallel to this, the project already uses op1st Tekton (OpenShift
 Pipelines + Pipelines-as-Code) for PR and push-to-main CI, registered in
 namespace `op1st-pipelines` via the `Repository` CR
-`.tekton/repository.yaml`. The open bead **forgejo-mcp-td8** captures the
+`manifests/repository.yaml` (applied by hand — it must stay out of
+`.tekton/`, which PaC decodes with a Tekton-only scheme). The open bead **forgejo-mcp-td8** captures the
 follow-up decision of which CI gate (Forgejo Actions vs Tekton) becomes
 canonical for PRs; release follows the same direction once that lands.
 
@@ -128,7 +129,8 @@ visible from `oc get secret`). Operator must confirm once on Codeberg UI:
   `write:repository` on `goern/forgejo-mcp` (covers release publish +
   asset upload). Read-only PaC tokens like `codeberg-runner-openshift-pac`
   do **not** suffice.
-- The PAT identity (e.g. `b4mad-release-bot`) is whoever should appear as
+- The PAT identity (e.g. `b4mad-release-agent`, renamed from
+  `b4mad-release-bot` on 2026-07-30) is whoever should appear as
   release author in the Codeberg UI.
 - `cosign-signing-key.cosign.pub` in `op1st-pipelines` matches the
   normative public key at

@@ -51,9 +51,15 @@ cover the mutations.
 | [list-milestones-labels.md](list-milestones-labels.md) | `list_repo_labels`, `list_repo_milestones` | Discover the ID↔name mapping needed by `add_issue_labels` and `update_issue` |
 | [issue-labels.md](issue-labels.md) | `add_issue_labels`, `remove_issue_labels` | Full add/remove cycle on a real issue, plus multi-label calls |
 | [org-labels.md](org-labels.md) | `list_org_labels`, merged `list_repo_labels` | Org-scope labels surfaced through the same ID space, with `scope` field and opt-out |
+| [label-management.md](label-management.md) | `create_repo_label`, `edit_repo_label`, `delete_repo_label`, `get_repo_label`, `create_org_label`, `edit_org_label`, `delete_org_label`, `get_org_label` + 3 resource templates | Full label lifecycle: create with color normalisation, PATCH-edit, safe-delete with in-use guard, URI-addressable resources |
+| [issue-due-dates.md](issue-due-dates.md) | `update_issue` (`due_date` / `clear_due_date`), `list_repo_issues` (`sort`), issue resource template | Set, read, sort by and clear an issue deadline; both due-date sort directions; mutual-exclusion guard |
 
 **Use case.** Build a label lookup table once, then have the agent
 classify issues and apply labels without ever leaving the MCP loop.
+`label-management.md` covers the full lifecycle — agents can now also
+*create* the label taxonomy from scratch without leaving MCP.
+`issue-due-dates.md` adds the time axis: an agent can ask Forgejo for its
+work in earliest-deadline-first order instead of sorting locally.
 
 ### 2. Attachments
 
@@ -65,6 +71,7 @@ edit, delete — for both surfaces.
 |------|-------|---------------|
 | [issue-attachments.md](issue-attachments.md) | 6 tools keyed by `index` | Upload, inspect, download, rename, delete attachments on an issue/PR |
 | [comment-attachments.md](comment-attachments.md) | 6 tools keyed by `comment_id` | Same lifecycle on individual comment attachments |
+| [attachment-file-path.md](attachment-file-path.md) | `create_issue_attachment`, `create_comment_attachment`, `create_release_attachment` | Host file uploads with basename defaults, filename overrides, relative paths, source validation, zero-byte content, a large streamed release asset, and the `FORGEJO_MCP_ALLOW_FILE_PATH_UPLOAD` / `FORGEJO_MCP_UPLOAD_ROOT` gate rejecting reads |
 
 **Use case.** An agent triaging a bug report needs to fetch the
 attached log file before reasoning about it; an agent writing a release
@@ -126,11 +133,14 @@ web-UI clicks.
 | Demo | Tools | What it shows |
 |------|-------|---------------|
 | [bounded-responses.md](bounded-responses.md) | `get_pull_request_diff` with `file_path`, `get_file_content` with `start_line`/`end_line` | Cut payloads to just the file or line range the agent needs (measured 16× / 41× reductions on real data) |
+| [bounded-issue-and-comment-lists.md](bounded-issue-and-comment-lists.md) | `forgejo://…/issues{?state,labels,page,limit}` and `forgejo://…/{kind}/{index}/comments{?page,limit}` resources | Row-shaped issue lists with no bodies (measured 16.7× reduction), client-controlled bounds and filters, a page-boundary walk proving no row is lost or repeated, full-body comment threads, and the `N of M shown` sentinel |
 
 **Use case.** Reviewing a PR no longer means pulling the whole diff
 into the model's context. Pick one file's hunks, optionally read a
 few lines of surrounding source around each hunk, repeat. Per-call
 payloads stay proportional to what the agent actually inspects.
+The same rule applies to triage: survey a repository as rows, then open
+only the one thread that turned out to matter.
 
 This is the user-facing half of the architectural rule in
 [`../docs/design/output-bounding.md`](../docs/design/output-bounding.md):
@@ -146,6 +156,69 @@ the caller. Expect future tools to follow the same pattern.
 **Use case.** Hosting a single forgejo-mcp instance behind an HTTPS
 endpoint and pointing multiple MCP clients at it, instead of every
 client spawning its own stdio subprocess.
+
+### 9. Branch protection (governance)
+
+CRUD on a repository's branch protection rules — require status checks
+or approvals before merge, and whitelist specific users (e.g. a release
+bot) to push to an otherwise locked branch. This demo is **token-free**:
+it proves the surface through the CLI tool registry and the `httptest`
+suite, since reading/writing real protection needs a repo-admin token.
+It is co-located with its spec under `openspec/`, not in this folder.
+
+| Demo | Tools | What it shows |
+|------|-------|---------------|
+| [../openspec/specs/branch-protection/branch-protection.demo.md](../openspec/specs/branch-protection/branch-protection.demo.md) | 5 tools — `list`/`get`/`create`/`edit`/`delete_branch_protection` | Registration, the `branch_name`-required guard, push/merge/approvals whitelist params, and PATCH null-safety (unpassed fields never wipe an existing rule) |
+
+**Use case.** A governance agent that locks `main`, requires green CI
+before merge, and whitelists a release bot to push tags — without
+relaxing protection for anyone else.
+
+### 10. Repository webhooks
+
+CRUD on a repository's webhooks — list, get, create, edit, delete, and trigger
+a test delivery. Two resource templates expose the hook collection and single
+hooks as `forgejo://` URIs. The core surface proof is **token-free**; it
+verifies tool registration, parameter validation, and the secret-exclusion
+guarantee through the CLI tool registry and source analysis. It is co-located
+with its spec under `openspec/`, not in this folder.
+
+| Demo | Tools | What it shows |
+|------|-------|---------------|
+| [../openspec/changes/repo-webhook-tools/specs/repo-webhook-tools/repo-webhook-tools.demo.md](../openspec/changes/repo-webhook-tools/specs/repo-webhook-tools/repo-webhook-tools.demo.md) | 6 tools — `list`/`get`/`create`/`edit`/`delete_repo_hook` + `test_repo_hook`; 2 resources — `forgejo://repo/{owner}/{repo}/hooks` + `.../hook/{id}` | Tool registration, required-param guards (all 6 tools), `safeHook()` explicit-allowlist proof that `secret` is never echoed, `test_repo_hook` live-delivery warning, URI parser `invalid-params` vs `not-found` distinction |
+
+**Use case.** An automation agent that registers a CI notification hook on
+every newly created repository, tests the delivery to confirm the endpoint is
+reachable, and removes stale hooks whose URLs no longer respond.
+
+### 11. Repository settings
+
+Read one repository and PATCH description, website, visibility, archive flag,
+and unit toggles. Only supplied fields change; an empty edit is an error so an
+omitted `private` cannot become `false`.
+
+| Demo | Tools | What it shows |
+|------|-------|---------------|
+| [edit-repo.md](edit-repo.md) | `get_repo`, `edit_repo` | Read `website`/`description`, description-only PATCH, explicit `private=false`, clear-by-empty-string, empty-edit guard |
+| [repo-topics.md](repo-topics.md) | `list_repo_topics`, `set_repo_topics`, `add_repo_topic`, `delete_repo_topic` | CSV replace-all, empty CSV clears, missing `topics` key is an error, add/delete one name, invalid names never hit the network. Not a field of `edit_repo`. |
+
+**Use case.** Put a homepage on an existing repo, archive a finished project,
+or turn wiki/issues off — without `curl` and without clobbering visibility.
+Tag a repo with `go,mcp` via `set_repo_topics` rather than a PATCH that would
+wipe tags if the field were omitted.
+
+### 12. Workflow run control
+
+Cancel or delete a workflow run and list that run's artifacts. Cancel is 204
+even when the run already finished; delete only succeeds for a completed run
+and removes it. Artifact tools are metadata-only — they do not download zips.
+
+| Demo | Tools | What it shows |
+|------|-------|---------------|
+| [workflow-run-control.md](workflow-run-control.md) | `cancel_workflow_run`, `delete_workflow_run`, `list_action_run_artifacts`, `get_action_artifact` | `--help` surface, cancel vs delete asymmetry, server-paged artifact envelope, metadata-only get. Write tools are not invoked |
+
+**Use case.** Stop a runaway Actions run, drop a completed failure after
+reading its logs, or inspect what a run uploaded without fetching a zip.
 
 ---
 

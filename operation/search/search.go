@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/params"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/to"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/params"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/to"
 
 	forgejo_sdk "codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -56,12 +56,23 @@ func RegisterTool(s *server.MCPServer) {
 }
 
 func SearchUserFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	// Create a search query for dummy implementation
+	log.Debugf("Called SearchUserFn")
 	keyword, _ := req.GetArguments()["keyword"].(string)
+	page, _ := to.Float64(req.GetArguments()["page"])
+	if page == 0 {
+		page = 1
+	}
+	limit, _ := to.Float64(req.GetArguments()["limit"])
+	if limit == 0 {
+		limit = 100
+	}
 
-	// Create a basic search option with just a keyword
 	opt := forgejo_sdk.SearchUsersOption{
 		KeyWord: keyword,
+		ListOptions: forgejo_sdk.ListOptions{
+			Page:     int(page),
+			PageSize: int(limit),
+		},
 	}
 
 	// Use the correct options type for searching
@@ -71,7 +82,7 @@ func SearchUserFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 	}
 	result, _, err := client.SearchUsers(opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("search user err: %v", err))
+		return to.ErrorResult(fmt.Errorf("search user err: %w", err))
 	}
 	return to.TextResult(result)
 }
@@ -85,10 +96,21 @@ func SearchOrgTeamsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	}
 
 	keyword, _ := req.GetArguments()["keyword"].(string)
+	page, _ := to.Float64(req.GetArguments()["page"])
+	if page == 0 {
+		page = 1
+	}
+	limit, _ := to.Float64(req.GetArguments()["limit"])
+	if limit == 0 {
+		limit = 100
+	}
 
-	// Create proper search team options
 	opt := &forgejo_sdk.SearchTeamsOptions{
 		Query: keyword,
+		ListOptions: forgejo_sdk.ListOptions{
+			Page:     int(page),
+			PageSize: int(limit),
+		},
 	}
 
 	// Use the proper options type for search
@@ -98,7 +120,7 @@ func SearchOrgTeamsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	}
 	result, _, err := client.SearchOrgTeams(org, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("search org teams err: %v", err))
+		return to.ErrorResult(fmt.Errorf("search org teams err: %w", err))
 	}
 	return to.TextResult(result)
 }
@@ -135,7 +157,7 @@ func SearchReposFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	}
 	result, _, err := client.SearchRepos(opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("search repos err: %v", err))
+		return to.ErrorResult(fmt.Errorf("search repos err: %w", err))
 	}
 	return to.TextResult(result)
 }

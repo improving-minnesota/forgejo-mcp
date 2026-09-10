@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/params"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/to"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/params"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/to"
 
 	forgejo_sdk "codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -59,7 +59,7 @@ func ListRepoContentsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	}
 	contents, _, err := client.ListContents(owner, repo, ref, path)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list repo contents err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list repo contents err: %w", err))
 	}
 	return to.TextResult(contents)
 }
@@ -101,7 +101,7 @@ func GetRepoTreeFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 	}
 	tree, _, err := client.GetTrees(owner, repo, ref, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get repo tree err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get repo tree err: %w", err))
 	}
 	return to.TextResult(tree)
 }

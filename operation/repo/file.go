@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"strings"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/params"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/to"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/params"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/to"
 
 	forgejo_sdk "codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -98,7 +98,7 @@ func GetFileContentFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		}
 		content, _, err := client.GetContents(owner, repo, ref, filePath)
 		if err != nil {
-			return to.ErrorResult(fmt.Errorf("get file err: %v", err))
+			return to.ErrorResult(fmt.Errorf("get file err: %w", err))
 		}
 		return to.TextResult(content)
 	}
@@ -111,7 +111,7 @@ func GetFileContentFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	}
 	rawBytes, _, err := client.GetFile(owner, repo, ref, filePath)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get file err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get file err: %w", err))
 	}
 
 	startF, _ := to.Float64(args["start_line"])
@@ -120,18 +120,18 @@ func GetFileContentFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 		return to.TextResult(string(rawBytes))
 	}
 
-	sliced, err := sliceLines(string(rawBytes), int(startF), int(endF))
+	sliced, err := SliceLines(string(rawBytes), int(startF), int(endF))
 	if err != nil {
 		return to.ErrorResult(err)
 	}
 	return to.TextResult(sliced)
 }
 
-// sliceLines returns the 1-indexed inclusive [start, end] line range
+// SliceLines returns the 1-indexed inclusive [start, end] line range
 // of content. start=0 means "from line 1"; end=0 means "to the last
 // line". Out-of-range values clamp; an inverted range after clamping
 // is reported as an error.
-func sliceLines(content string, start, end int) (string, error) {
+func SliceLines(content string, start, end int) (string, error) {
 	lines := strings.Split(content, "\n")
 	count := len(lines)
 
@@ -177,7 +177,7 @@ func CreateFileFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 	}
 	fileResp, _, err := client.CreateFile(owner, repo, filePath, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("create file error: %v", err))
+		return to.ErrorResult(fmt.Errorf("create file error: %w", err))
 	}
 	return to.TextResult(fileResp)
 }
@@ -210,7 +210,7 @@ func UpdateFileFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 	}
 	fileResp, _, err := client.UpdateFile(owner, repo, filePath, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("update file error: %v", err))
+		return to.ErrorResult(fmt.Errorf("update file error: %w", err))
 	}
 	return to.TextResult(fileResp)
 }
@@ -235,10 +235,12 @@ func DeleteFileFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 	if !ok {
 		return to.ErrorResult(fmt.Errorf("sha is required"))
 	}
+	newBranchName, _ := req.GetArguments()["new_branch_name"].(string)
 	opt := forgejo_sdk.DeleteFileOptions{
 		FileOptions: forgejo_sdk.FileOptions{
-			Message:    message,
-			BranchName: branchName,
+			Message:       message,
+			BranchName:    branchName,
+			NewBranchName: newBranchName,
 		},
 		SHA: sha,
 	}
@@ -248,7 +250,7 @@ func DeleteFileFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 	}
 	_, err = client.DeleteFile(owner, repo, filePath, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("delete file err: %v", err))
+		return to.ErrorResult(fmt.Errorf("delete file err: %w", err))
 	}
 	return to.TextResult("Delete file success")
 }

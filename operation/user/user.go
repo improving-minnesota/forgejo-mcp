@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/to"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/to"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -56,7 +56,7 @@ func GetUserInfoFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolR
 
 	if err != nil {
 		log.LogMCPToolError(ctx, GetMyUserInfoToolName, duration, err)
-		return to.ErrorResult(fmt.Errorf("get user info err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get user info err: %w", err))
 	}
 
 	log.LogMCPToolComplete(ctx, GetMyUserInfoToolName, duration, fmt.Sprintf("Retrieved info for user: %s", user.UserName))

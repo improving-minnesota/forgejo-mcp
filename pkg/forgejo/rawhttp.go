@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/flag"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/flag"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
 )
 
 // MaxInlineDownloadBytes caps inline base64 attachment payloads.
@@ -40,6 +40,16 @@ type HTTPError struct {
 	Method     string
 	URL        string
 	wrapped    error
+}
+
+// RawAPIResponse contains a bounded response body and the headers needed to
+// resume ranged API reads.
+type RawAPIResponse struct {
+	Body          []byte
+	ContentType   string
+	ContentRange  string
+	ContentLength int64
+	StatusCode    int
 }
 
 func (e *HTTPError) Error() string {
@@ -95,14 +105,15 @@ func resolveSameOriginURL(pathOrURL string) (string, error) {
 	return base + pathOrURL, nil
 }
 
-func setCommonHeaders(ctx context.Context, req *http.Request) {
-	token, ok := ctx.Value(TokenContextKey).(string)
-	if !ok || token == "" {
-		token = flag.Token
+func setCommonHeaders(ctx context.Context, req *http.Request) error {
+	token, err := tokenForRequest(ctx)
+	if err != nil {
+		return err
 	}
 	req.Header.Set("Authorization", "token "+token)
 	req.Header.Set("User-Agent", userAgent())
 	req.Header.Set("Accept", "application/json")
+	return nil
 }
 
 // doRequest sends req, returns the response, mapping common HTTP errors to
@@ -141,10 +152,10 @@ func httpErrorFromResponse(req *http.Request, resp *http.Response) *HTTPError {
 		Method:     req.Method,
 		URL:        req.URL.String(),
 	}
-	switch {
-	case resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden:
+	switch resp.StatusCode {
+	case http.StatusUnauthorized, http.StatusForbidden:
 		e.wrapped = ErrUnauthorized
-	case resp.StatusCode == http.StatusNotFound:
+	case http.StatusNotFound:
 		e.wrapped = ErrNotFound
 	}
 	return e
@@ -154,58 +165,140 @@ func httpErrorFromResponse(req *http.Request, resp *http.Response) *HTTPError {
 // non-nil; decodes 2xx response into out if non-nil. 204 responses are
 // always success-with-no-body. 4xx/5xx return *HTTPError.
 //
-// The boolean isList signals "list endpoint": for those, 404 is treated
-// as an empty list (not an error), matching Forgejo's habit of 404ing
-// list endpoints when the parent entity has no children.
+// For list endpoints where a 404 should mean "empty list" (Forgejo's habit
+// when the parent entity has no children), use DoJSONList instead.
 func DoJSON(ctx context.Context, method, pathOrURL string, body, out any) error {
+	_, err := DoJSONWithHeader(ctx, method, pathOrURL, body, out)
+	return err
+}
+
+// DoJSONWithHeader is DoJSON plus the response headers. 4xx/5xx remain
+// errors, including 404 — unlike DoJSONList, a missing parent is not
+// rewritten as an empty list. Paged list endpoints that must distinguish
+// "no such run" from "run with zero children" use this and read
+// X-Total-Count / Link from the returned header.
+func DoJSONWithHeader(ctx context.Context, method, pathOrURL string, body, out any) (http.Header, error) {
+	return doJSONWithHeader(ctx, method, pathOrURL, body, out)
+}
+
+// doJSONWithHeader is DoJSON's body, additionally returning the response
+// headers. Paged list endpoints need them: Forgejo reports the total in
+// X-Total-Count and "another page exists" in Link … rel="next", and a bounded
+// resource that must not over-fetch has no other way to detect truncation.
+// The header is returned even on error when a response was received, so a
+// caller mapping a 404 to "empty list" still sees whatever the server said.
+func doJSONWithHeader(ctx context.Context, method, pathOrURL string, body, out any) (http.Header, error) {
 	full, err := resolveURL(pathOrURL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var bodyReader io.Reader
 	if body != nil {
 		buf, err := json.Marshal(body)
 		if err != nil {
-			return fmt.Errorf("marshal body: %w", err)
+			return nil, fmt.Errorf("marshal body: %w", err)
 		}
 		bodyReader = bytes.NewReader(buf)
 	}
 	req, err := http.NewRequestWithContext(ctx, method, full, bodyReader)
 	if err != nil {
-		return fmt.Errorf("build request: %w", err)
+		return nil, fmt.Errorf("build request: %w", err)
 	}
-	setCommonHeaders(ctx, req)
+	if err := setCommonHeaders(ctx, req); err != nil {
+		return nil, err
+	}
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
 	resp, err := doRequest(ctx, req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return httpErrorFromResponse(req, resp)
+		return resp.Header, httpErrorFromResponse(req, resp)
 	}
 	if resp.StatusCode == http.StatusNoContent || out == nil {
 		_, _ = io.Copy(io.Discard, resp.Body)
-		return nil
+		return resp.Header, nil
 	}
 	if err := json.NewDecoder(resp.Body).Decode(out); err != nil {
-		return fmt.Errorf("decode response: %w", err)
+		return resp.Header, fmt.Errorf("decode response: %w", err)
 	}
-	return nil
+	return resp.Header, nil
 }
 
 // DoJSONList is like DoJSON but treats 404 as "empty list" (no error,
 // out left at its zero value).
 func DoJSONList(ctx context.Context, method, pathOrURL string, out any) error {
-	err := DoJSON(ctx, method, pathOrURL, nil, out)
+	_, err := DoJSONListWithHeader(ctx, method, pathOrURL, out)
+	return err
+}
+
+// DoJSONListWithHeader is DoJSONList plus the response headers, for paged list
+// endpoints that must read X-Total-Count / Link to bound their output without
+// over-fetching. On the 404-means-empty path the headers are still returned.
+func DoJSONListWithHeader(ctx context.Context, method, pathOrURL string, out any) (http.Header, error) {
+	header, err := doJSONWithHeader(ctx, method, pathOrURL, nil, out)
 	var he *HTTPError
 	if errors.As(err, &he) && he.StatusCode == http.StatusNotFound {
-		return nil
+		return header, nil
 	}
-	return err
+	return header, err
+}
+
+// DoAPIRaw performs an authenticated GET against an API path and reads at most
+// maxBytes. The optional byteRange value is sent as the HTTP Range header.
+// Callers must use response range metadata to make bounded reads resumable.
+func DoAPIRaw(ctx context.Context, pathOrURL, accept, byteRange string, maxBytes int64) (*RawAPIResponse, error) {
+	if maxBytes <= 0 {
+		return nil, fmt.Errorf("maxBytes must be positive")
+	}
+	full, err := resolveURL(pathOrURL)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, full, nil)
+	if err != nil {
+		return nil, fmt.Errorf("build request: %w", err)
+	}
+	if err := setCommonHeaders(ctx, req); err != nil {
+		return nil, err
+	}
+	if accept != "" {
+		req.Header.Set("Accept", accept)
+	}
+	if byteRange != "" {
+		req.Header.Set("Range", byteRange)
+	}
+
+	resp, err := doRequest(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, httpErrorFromResponse(req, resp)
+	}
+
+	limited := io.LimitReader(resp.Body, maxBytes+1)
+	body, err := io.ReadAll(limited)
+	if err != nil {
+		return nil, fmt.Errorf("read body: %w", err)
+	}
+	if int64(len(body)) > maxBytes {
+		return nil, ErrPayloadTooLarge
+	}
+
+	return &RawAPIResponse{
+		Body:          body,
+		ContentType:   resp.Header.Get("Content-Type"),
+		ContentRange:  resp.Header.Get("Content-Range"),
+		ContentLength: resp.ContentLength,
+		StatusCode:    resp.StatusCode,
+	}, nil
 }
 
 // quoteEscaper mirrors mime/multipart's internal escaper for filenames.
@@ -219,35 +312,24 @@ func DoMultipart(ctx context.Context, method, pathOrURL, fieldName, filename, mi
 		return err
 	}
 
-	body := &bytes.Buffer{}
-	mw := multipart.NewWriter(body)
+	pipeReader, pipeWriter := io.Pipe()
+	multipartWriter := multipart.NewWriter(pipeWriter)
+	contentType := multipartWriter.FormDataContentType()
 
-	h := textproto.MIMEHeader{}
-	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
-		quoteEscaper.Replace(fieldName), quoteEscaper.Replace(filename)))
-	if mimeType != "" {
-		h.Set("Content-Type", mimeType)
-	} else {
-		h.Set("Content-Type", "application/octet-stream")
-	}
-	part, err := mw.CreatePart(h)
+	req, err := http.NewRequestWithContext(ctx, method, full, pipeReader)
 	if err != nil {
-		return fmt.Errorf("create multipart part: %w", err)
-	}
-	if _, err := io.Copy(part, r); err != nil {
-		return fmt.Errorf("copy file into part: %w", err)
-	}
-	if err := mw.Close(); err != nil {
-		return fmt.Errorf("close multipart writer: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, method, full, body)
-	if err != nil {
+		_ = pipeReader.Close()
+		_ = pipeWriter.Close()
 		return fmt.Errorf("build request: %w", err)
 	}
-	setCommonHeaders(ctx, req)
-	req.Header.Set("Content-Type", mw.FormDataContentType())
+	go writeMultipart(pipeWriter, multipartWriter, fieldName, filename, mimeType, r)
+
+	if err := setCommonHeaders(ctx, req); err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", contentType)
 	resp, err := doRequest(ctx, req)
+	_ = pipeReader.Close()
 	if err != nil {
 		return err
 	}
@@ -264,6 +346,29 @@ func DoMultipart(ctx context.Context, method, pathOrURL, fieldName, filename, mi
 		return fmt.Errorf("decode response: %w", err)
 	}
 	return nil
+}
+
+func writeMultipart(pipeWriter *io.PipeWriter, multipartWriter *multipart.Writer, fieldName, filename, mimeType string, r io.Reader) {
+	h := textproto.MIMEHeader{}
+	h.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
+		quoteEscaper.Replace(fieldName), quoteEscaper.Replace(filename)))
+	if mimeType != "" {
+		h.Set("Content-Type", mimeType)
+	} else {
+		h.Set("Content-Type", "application/octet-stream")
+	}
+	part, err := multipartWriter.CreatePart(h)
+	if err == nil {
+		_, err = io.Copy(part, r)
+	}
+	if err == nil {
+		err = multipartWriter.Close()
+	}
+	if err != nil {
+		_ = pipeWriter.CloseWithError(err)
+		return
+	}
+	_ = pipeWriter.Close()
 }
 
 // DoRaw fetches bytes from a URL (absolute or relative-to-flag.URL with no
@@ -279,7 +384,9 @@ func DoRaw(ctx context.Context, pathOrURL string) ([]byte, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("build request: %w", err)
 	}
-	setCommonHeaders(ctx, req)
+	if err := setCommonHeaders(ctx, req); err != nil {
+		return nil, "", err
+	}
 	// Don't constrain Accept here — the asset endpoint is binary.
 
 	resp, err := doRequest(ctx, req)

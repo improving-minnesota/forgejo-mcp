@@ -22,6 +22,44 @@ type RepoParams struct {
 	Repo  string
 }
 
+// WikiParams holds parsed fields from forgejo://repo/{owner}/{repo}/wiki/{pageName}.
+type WikiParams struct {
+	Owner    string
+	Repo     string
+	PageName string
+}
+
+// ParseWiki parses a wiki page URI while preserving an encoded slash in pageName.
+func ParseWiki(uri string) (WikiParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return WikiParams{}, err
+	}
+	if u.Host != "repo" {
+		return WikiParams{}, fmt.Errorf("%w: expected forgejo://repo/..., got %q", ErrInvalidParams, uri)
+	}
+	escapedParts := splitPath(u.EscapedPath())
+	if len(escapedParts) != 4 || escapedParts[2] != "wiki" {
+		return WikiParams{}, fmt.Errorf("%w: expected forgejo://repo/{owner}/{repo}/wiki/{pageName}; percent-encode '/' in pageName as %%2F, got %q", ErrInvalidParams, uri)
+	}
+	owner, err := url.PathUnescape(escapedParts[0])
+	if err != nil {
+		return WikiParams{}, fmt.Errorf("%w: invalid owner encoding: %w", ErrInvalidParams, err)
+	}
+	repo, err := url.PathUnescape(escapedParts[1])
+	if err != nil {
+		return WikiParams{}, fmt.Errorf("%w: invalid repo encoding: %w", ErrInvalidParams, err)
+	}
+	pageName, err := url.PathUnescape(escapedParts[3])
+	if err != nil {
+		return WikiParams{}, fmt.Errorf("%w: invalid page name encoding: %w", ErrInvalidParams, err)
+	}
+	if strings.TrimSpace(pageName) == "" {
+		return WikiParams{}, fmt.Errorf("%w: wiki page name must not be empty", ErrInvalidParams)
+	}
+	return WikiParams{Owner: owner, Repo: repo, PageName: pageName}, nil
+}
+
 // CommitParams holds parsed fields from forgejo://repo/{owner}/{repo}/commit/{sha}.
 // SHA must be exactly 40 hex characters.
 type CommitParams struct {
@@ -95,7 +133,7 @@ func ParseRepo(uri string) (RepoParams, error) {
 }
 
 // ParseCommit parses forgejo://repo/{owner}/{repo}/commit/{sha}.
-// Returns an error if sha is not exactly 40 lowercase hex characters.
+// Returns an error if sha is not exactly 40 hex characters.
 func ParseCommit(uri string) (CommitParams, error) {
 	u, err := parseForgejoURI(uri)
 	if err != nil {
@@ -111,7 +149,7 @@ func ParseCommit(uri string) (CommitParams, error) {
 	}
 	sha := parts[3]
 	if err := validateSHA(sha); err != nil {
-		return CommitParams{}, fmt.Errorf("%w: invalid URI %q: %s", ErrInvalidParams, uri, err)
+		return CommitParams{}, fmt.Errorf("%w: invalid URI %q: %w", ErrInvalidParams, uri, err)
 	}
 	return CommitParams{Owner: parts[0], Repo: parts[1], SHA: sha}, nil
 }
@@ -204,15 +242,263 @@ func ParseStatus(uri string) (StatusParams, error) {
 	}
 	sha := parts[3]
 	if err := validateSHA(sha); err != nil {
-		return StatusParams{}, fmt.Errorf("%w: invalid URI %q: %s", ErrInvalidParams, uri, err)
+		return StatusParams{}, fmt.Errorf("%w: invalid URI %q: %w", ErrInvalidParams, uri, err)
 	}
 	return StatusParams{Owner: parts[0], Repo: parts[1], SHA: sha}, nil
+}
+
+// BranchProtectionsParams holds parsed fields from
+// forgejo://repo/{owner}/{repo}/branch_protections (collection).
+type BranchProtectionsParams struct {
+	Owner string
+	Repo  string
+}
+
+// BranchProtectionParams holds parsed fields from
+// forgejo://repo/{owner}/{repo}/branch_protection/{rule} (single entity).
+// Rule is the rule name and MAY contain slashes (branch-name globs such as
+// "release/*"), so it is reassembled from all trailing path segments.
+type BranchProtectionParams struct {
+	Owner string
+	Repo  string
+	Rule  string
+}
+
+// ParseBranchProtections parses forgejo://repo/{owner}/{repo}/branch_protections.
+func ParseBranchProtections(uri string) (BranchProtectionsParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return BranchProtectionsParams{}, err
+	}
+	if u.Host != "repo" {
+		return BranchProtectionsParams{}, fmt.Errorf("%w: expected forgejo://repo/..., got %q", ErrInvalidParams, uri)
+	}
+	parts := splitPath(u.Path)
+	// parts: [owner, repo, "branch_protections"]
+	if len(parts) != 3 || parts[2] != "branch_protections" {
+		return BranchProtectionsParams{}, fmt.Errorf("%w: expected forgejo://repo/{owner}/{repo}/branch_protections, got %q", ErrInvalidParams, uri)
+	}
+	return BranchProtectionsParams{Owner: parts[0], Repo: parts[1]}, nil
+}
+
+// ParseBranchProtection parses forgejo://repo/{owner}/{repo}/branch_protection/{rule}.
+// The rule name is the remainder after "branch_protection/", which is what lets a
+// %2F-encoded rule round-trip: url.Parse decodes %2F into a real '/', splitting the
+// name across segments, and rejoining puts it back. This is NOT a licence to send a
+// raw '/' — mcp-go matches the read against a regexp built from the template, and a
+// path variable there does not admit one, so forgejo://…/branch_protection/release/*
+// never reaches this function at all.
+func ParseBranchProtection(uri string) (BranchProtectionParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return BranchProtectionParams{}, err
+	}
+	if u.Host != "repo" {
+		return BranchProtectionParams{}, fmt.Errorf("%w: expected forgejo://repo/..., got %q", ErrInvalidParams, uri)
+	}
+	parts := splitPath(u.Path)
+	// parts: [owner, repo, "branch_protection", rule...]
+	if len(parts) < 4 || parts[2] != "branch_protection" {
+		return BranchProtectionParams{}, fmt.Errorf("%w: expected forgejo://repo/{owner}/{repo}/branch_protection/{rule}, got %q", ErrInvalidParams, uri)
+	}
+	rule := strings.Join(parts[3:], "/")
+	if rule == "" {
+		return BranchProtectionParams{}, fmt.Errorf("%w: empty rule name in %q", ErrInvalidParams, uri)
+	}
+	return BranchProtectionParams{Owner: parts[0], Repo: parts[1], Rule: rule}, nil
+}
+
+// LabelParams holds parsed fields from forgejo://repo/{owner}/{repo}/label/{id}.
+type LabelParams struct {
+	Owner string
+	Repo  string
+	ID    int64
+}
+
+// IssuesParams holds parsed fields from forgejo://repo/{owner}/{repo}/issues.
+type IssuesParams struct {
+	Owner string
+	Repo  string
+}
+
+// IssueCommentsParams holds parsed fields from
+// forgejo://repo/{owner}/{repo}/{kind}/{index}/comments. Kind is constrained to
+// "issue" or "pr"; both resolve through the Forgejo issue-comment API, matching
+// the single-comment resource.
+type IssueCommentsParams struct {
+	Owner string
+	Repo  string
+	Kind  string
+	Index int64
+}
+
+// LabelsParams holds parsed fields from forgejo://repo/{owner}/{repo}/labels.
+type LabelsParams struct {
+	Owner string
+	Repo  string
+}
+
+// OrgLabelsParams holds parsed fields from forgejo://org/{org}/labels.
+type OrgLabelsParams struct {
+	Org string
+}
+
+// ParseLabel parses forgejo://repo/{owner}/{repo}/label/{id}.
+// Returns ErrInvalidParams if the id is not numeric.
+func ParseLabel(uri string) (LabelParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return LabelParams{}, err
+	}
+	if u.Host != "repo" {
+		return LabelParams{}, fmt.Errorf("%w: expected forgejo://repo/..., got %q", ErrInvalidParams, uri)
+	}
+	parts := splitPath(u.Path)
+	// parts: [owner, repo, "label", id]
+	if len(parts) != 4 || parts[2] != "label" {
+		return LabelParams{}, fmt.Errorf("%w: expected forgejo://repo/{owner}/{repo}/label/{id}, got %q", ErrInvalidParams, uri)
+	}
+	id, err := strconv.ParseInt(parts[3], 10, 64)
+	if err != nil {
+		return LabelParams{}, fmt.Errorf("%w: invalid URI %q: id must be numeric", ErrInvalidParams, uri)
+	}
+	return LabelParams{Owner: parts[0], Repo: parts[1], ID: id}, nil
+}
+
+// ParseIssues parses forgejo://repo/{owner}/{repo}/issues.
+// Query parameters (state, labels, page, limit) are read by the handler, not here.
+func ParseIssues(uri string) (IssuesParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return IssuesParams{}, err
+	}
+	if u.Host != "repo" {
+		return IssuesParams{}, fmt.Errorf("%w: expected forgejo://repo/..., got %q", ErrInvalidParams, uri)
+	}
+	parts := splitPath(u.Path)
+	// parts: [owner, repo, "issues"]
+	if len(parts) != 3 || parts[2] != "issues" {
+		return IssuesParams{}, fmt.Errorf("%w: expected forgejo://repo/{owner}/{repo}/issues, got %q", ErrInvalidParams, uri)
+	}
+	return IssuesParams{Owner: parts[0], Repo: parts[1]}, nil
+}
+
+// ParseIssueComments parses forgejo://repo/{owner}/{repo}/{kind}/{index}/comments.
+// Returns ErrInvalidParams if kind is not "issue"/"pr" or the index is not numeric.
+func ParseIssueComments(uri string) (IssueCommentsParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return IssueCommentsParams{}, err
+	}
+	if u.Host != "repo" {
+		return IssueCommentsParams{}, fmt.Errorf("%w: expected forgejo://repo/..., got %q", ErrInvalidParams, uri)
+	}
+	parts := splitPath(u.Path)
+	// parts: [owner, repo, kind, index, "comments"]
+	if len(parts) != 5 || parts[4] != "comments" {
+		return IssueCommentsParams{}, fmt.Errorf("%w: expected forgejo://repo/{owner}/{repo}/{kind}/{index}/comments, got %q", ErrInvalidParams, uri)
+	}
+	kind := parts[2]
+	if kind != "issue" && kind != "pr" {
+		return IssueCommentsParams{}, fmt.Errorf("%w: invalid URI %q: kind must be 'issue' or 'pr', got %q", ErrInvalidParams, uri, kind)
+	}
+	index, err := strconv.ParseInt(parts[3], 10, 64)
+	if err != nil {
+		return IssueCommentsParams{}, fmt.Errorf("%w: invalid URI %q: index must be numeric", ErrInvalidParams, uri)
+	}
+	return IssueCommentsParams{Owner: parts[0], Repo: parts[1], Kind: kind, Index: index}, nil
+}
+
+// ParseLabels parses forgejo://repo/{owner}/{repo}/labels.
+func ParseLabels(uri string) (LabelsParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return LabelsParams{}, err
+	}
+	if u.Host != "repo" {
+		return LabelsParams{}, fmt.Errorf("%w: expected forgejo://repo/..., got %q", ErrInvalidParams, uri)
+	}
+	parts := splitPath(u.Path)
+	// parts: [owner, repo, "labels"]
+	if len(parts) != 3 || parts[2] != "labels" {
+		return LabelsParams{}, fmt.Errorf("%w: expected forgejo://repo/{owner}/{repo}/labels, got %q", ErrInvalidParams, uri)
+	}
+	return LabelsParams{Owner: parts[0], Repo: parts[1]}, nil
+}
+
+// ParseOrgLabels parses forgejo://org/{org}/labels.
+func ParseOrgLabels(uri string) (OrgLabelsParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return OrgLabelsParams{}, err
+	}
+	if u.Host != "org" {
+		return OrgLabelsParams{}, fmt.Errorf("%w: expected forgejo://org/{org}/labels, got %q", ErrInvalidParams, uri)
+	}
+	parts := splitPath(u.Path)
+	// parts: [org, "labels"]
+	if len(parts) != 2 || parts[1] != "labels" {
+		return OrgLabelsParams{}, fmt.Errorf("%w: expected forgejo://org/{org}/labels, got %q", ErrInvalidParams, uri)
+	}
+	return OrgLabelsParams{Org: parts[0]}, nil
+}
+
+// HookParams holds parsed fields from forgejo://repo/{owner}/{repo}/hook/{id}.
+type HookParams struct {
+	Owner string
+	Repo  string
+	ID    int64
+}
+
+// HooksParams holds parsed fields from forgejo://repo/{owner}/{repo}/hooks.
+type HooksParams struct {
+	Owner string
+	Repo  string
+}
+
+// ParseHook parses forgejo://repo/{owner}/{repo}/hook/{id}.
+// Returns ErrInvalidParams if the id is not numeric.
+func ParseHook(uri string) (HookParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return HookParams{}, err
+	}
+	if u.Host != "repo" {
+		return HookParams{}, fmt.Errorf("%w: expected forgejo://repo/..., got %q", ErrInvalidParams, uri)
+	}
+	parts := splitPath(u.Path)
+	// parts: [owner, repo, "hook", id]
+	if len(parts) != 4 || parts[2] != "hook" {
+		return HookParams{}, fmt.Errorf("%w: expected forgejo://repo/{owner}/{repo}/hook/{id}, got %q", ErrInvalidParams, uri)
+	}
+	id, err := strconv.ParseInt(parts[3], 10, 64)
+	if err != nil {
+		return HookParams{}, fmt.Errorf("%w: invalid URI %q: id must be numeric", ErrInvalidParams, uri)
+	}
+	return HookParams{Owner: parts[0], Repo: parts[1], ID: id}, nil
+}
+
+// ParseHooks parses forgejo://repo/{owner}/{repo}/hooks.
+func ParseHooks(uri string) (HooksParams, error) {
+	u, err := parseForgejoURI(uri)
+	if err != nil {
+		return HooksParams{}, err
+	}
+	if u.Host != "repo" {
+		return HooksParams{}, fmt.Errorf("%w: expected forgejo://repo/..., got %q", ErrInvalidParams, uri)
+	}
+	parts := splitPath(u.Path)
+	// parts: [owner, repo, "hooks"]
+	if len(parts) != 3 || parts[2] != "hooks" {
+		return HooksParams{}, fmt.Errorf("%w: expected forgejo://repo/{owner}/{repo}/hooks, got %q", ErrInvalidParams, uri)
+	}
+	return HooksParams{Owner: parts[0], Repo: parts[1]}, nil
 }
 
 func parseForgejoURI(uri string) (*url.URL, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
-		return nil, fmt.Errorf("%w: malformed URI %q: %s", ErrInvalidParams, uri, err)
+		return nil, fmt.Errorf("%w: malformed URI %q: %w", ErrInvalidParams, uri, err)
 	}
 	if u.Scheme != "forgejo" {
 		return nil, fmt.Errorf("%w: invalid URI scheme: expected 'forgejo', got %q", ErrInvalidParams, u.Scheme)
@@ -242,13 +528,15 @@ func splitPath(path string) []string {
 	return result
 }
 
-// validateSHA returns an error if sha is not exactly 40 lowercase hex characters.
+// validateSHA returns an error if sha is not exactly 40 hex characters
+// (either case).
 func validateSHA(sha string) error {
 	if len(sha) != 40 {
 		return fmt.Errorf("%w: sha must be exactly 40 hex characters, got %d", ErrInvalidParams, len(sha))
 	}
 	for _, c := range sha {
-		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+		isHex := (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
+		if !isHex {
 			return fmt.Errorf("%w: sha contains invalid character %q", ErrInvalidParams, c)
 		}
 	}

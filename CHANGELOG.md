@@ -1,3 +1,734 @@
+## [3.0.0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/compare/v2.35.0...v3.0.0) (2026-09-08)
+
+### ⚠ BREAKING CHANGES
+
+* **security:** the sse and http transports now bind 127.0.0.1 by default
+and reject any request without its own Authorization header. A deployment
+serving remote clients must set --host (usually 0.0.0.0) and declare
+--allowed-hosts; a single-operator deployment that relied on the operator
+token being used for anonymous requests must set
+--allow-operator-token-fallback. stdio is unaffected in every respect.
+
+Closes #545.
+
+Co-authored-by: synath <synath@users.noreply.git.b4mad.industries>
+Assisted-by: Claude Opus 5 via Claude Code
+
+### :bug: Fixes
+
+* **deps:** 🔧 tidy go.sum after the mcp-go v1 bump ([db0c589](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/db0c589d7608e52c026707ee1eb171011018bf16)), closes [#554](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/554)
+* **deps:** update module github.com/mark3labs/mcp-go to v1 ([45b4091](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/45b409156102c3059bdf5189a02d7047837a8c04))
+* **log:** cut a truncated header on a rune boundary ([b8d38a9](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b8d38a9d776e7729bd1a225ca02da39c537aa8d7))
+* **security:** bind sse/http to loopback and require a per-request token ([305bc62](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/305bc62f14bd05603c065fcecb2f84044bac4bcd))
+* **security:** bound the RATE of refusal logging, not just the size ([5445ab9](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5445ab9a8796404015fbcd54192e6ec01573e6d4))
+* **security:** drop WriteTimeout, which capped the life of every stream ([616671f](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/616671f8a19f7b228aad14a62ef9030ac35cbd75))
+* **security:** land [#545](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/545) network transport hardening on the /v3 module path ([ea29e82](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/ea29e8297dbb40dc628d1fae308576e5dd4050fd)), closes [#562](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/562) [#562](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/562)
+
+### :memo: Documentation
+
+* **security:** correct a comment that described the rejected design ([0a4abd2](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0a4abd2ddcaefedf588151f588be09a05b6875f6))
+
+### :zap: Refactor
+
+* 🏗️ bump the module path to /v3 ([bc31ad0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/bc31ad0e24bee342866811445472eb253ca36d4f)), closes [#545](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/545) [#545](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/545) [#545](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/545)
+
+### :repeat: Chore
+
+* 🔧 make Renovate raise vulnerability PRs via OSV ([238234a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/238234a74abdbcf5d603857f42af6382e54f36ba))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 114d1b0 ([42996ff](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/42996fff0d12a148a7b4de7de2ef54db285745de))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to fc73766 ([eaf7954](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/eaf79542a3771fbfe8f151ba9ac2c25ec9fda5bd))
+* merge main (mcp-go v1, [#554](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/554)) into the [#545](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/545) integration branch ([43219b4](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/43219b49c7d7a87861f6451b3102312427cf5213))
+
+## [2.35.0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/compare/v2.34.1...v2.35.0) (2026-09-06)
+
+### :sparkles: Features
+
+* **actions:** add cancel/delete run and run artifacts ([3734aa2](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/3734aa290b9fff271daecf7ee58897e5591812e3))
+* **repo:** add get_repo and edit_repo tools ([baa594c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/baa594c00eda1e9881fd5c1cd43b50e4e945bb96))
+* **repo:** add repository topic tools ([0db8b67](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0db8b67961f48c4d52a6c9e6e4674a55e8385334))
+
+### :bug: Fixes
+
+* **actions:** use `t.Error` in httptest handlers ([9fd616d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/9fd616d84f1621d5efdf593300463182d7db6456))
+* **deps:** update dependency @fission-ai/openspec to v1.10.0 ([842f0c8](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/842f0c88df5aee193be391ce39eea46e52314c6e))
+
+### :memo: Documentation
+
+* 📝 add a security policy and point reporters at it ([008621f](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/008621fcd7190644d124396ad98b027c0f24a52b)), closes [#545](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/545)
+* 📝 tell agents to prefer resource reads over tool calls ([5e6d035](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5e6d035a90788a40a910a2542ee170fbf992404d))
+
+### :white_check_mark: Tests
+
+* **upload:** cover sibling-prefix upload-root rejection ([a412fa7](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a412fa7d1652aa0906b67b25d641b68c7733e7bf))
+
+### :repeat: Chore
+
+* 🔧 archive the edit-repo change ([be54fb4](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/be54fb4e3c2ef5454e7e7ec41b48247654036290))
+* 🔧 archive the repo-topics change ([d2e0d00](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d2e0d0053000f83c83afe2f873ef387709417f7d))
+* 🔧 archive the workflow-run-control change ([3d64bec](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/3d64bec313b3f3488dd9f96f0a500ff8342490f4))
+* **agents:** update them all ([66af5ab](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/66af5ab8c6616d4c2cd520f84e985f4131f8eda1))
+* **beads:** reconfigured to use hub.dolt.b4mad.industries ([78828b7](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/78828b74b140a4cfe982969adb5355a5df091c96))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 116df88 ([d8c8d07](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d8c8d07e67a4d55d894ebfc3569ebf663a1529bf))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 1212c3d ([30b7567](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/30b756706b947a032e27b1953194bc5fecad8918))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 57621f2 ([b9c8262](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b9c82625988f63a4c42f939a13447bf9ede356c6))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 7ea0a84 ([d192dc5](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d192dc5563b4d7d528972d9e149622be225baba2))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 89c1c9b ([b308ca1](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b308ca134d2e09ff1c9583e2be0b7c555b47b7b0))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 8f4f90a ([04af06a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/04af06a505f5d94b793eb3967c85407e8ec52147))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to b9e0bf1 ([df678ea](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/df678eab55b849285124d4a0c2516f7714b1a570))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to bc8e563 ([7222eb8](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/7222eb8ad5dc38ad1eb5ee4a9dd7b6271ea7bd64))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to c22dae6 ([2e62193](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2e6219385ab70cc34e568f1790ce66d6017c95db))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to c435c1e ([b159330](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b1593302edacb3dcbed5ef5861d3a2125e33d628))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to faa60cb ([c56dd8c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/c56dd8cadfdc992be46bf937ad80d8fec7afe644))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 0f227da ([16b03de](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/16b03de45727d55e70ab8ef941d21059acc532e6))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 1610c33 ([1c028df](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/1c028df1fd402f38e388f5f1691a8303d46b5e97))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 25635fd ([b99e451](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b99e45191632da2ed568788f2f250429ab6b2ef9))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 2d3bc72 ([d626b9f](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d626b9f35894d26cf562741d1537c6d4ab9137ab))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 34445e9 ([f0ce467](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f0ce467c936c1bf68a44b64f6e4cec4d3515f962))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 8be947f ([3d5e9f8](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/3d5e9f8d8cf88200c63320ccb7c6dfbc05a8da69))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 8e77444 ([b2d23ba](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b2d23ba155ef8e5c6130813124397479e2581142))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to b206830 ([444bd52](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/444bd525725e0c755fb36535648301bd0985e147))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to b3ffe05 ([5ee8312](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5ee8312375e56a923491fc972b095ad2dd935373))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to d203a1f ([2eede41](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2eede41a13c16bb83bd93099fdfd214cbd9beb42))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to d2d9202 ([f6d723d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f6d723d85d15370c0d26192d2923ce1be0e189a6))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to db9c895 ([9894616](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/98946163c83cd06ca00368b29c0c5692cb1478b9))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to e288dfb ([cfbbc60](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/cfbbc6074812d5694b56d4a1148de2f792fbe1ab))
+* **skills:** add openspec skills, updated the rest ([5fc8e7a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5fc8e7af91f613e2a8ba5ccbb787e555cf7b4e9d))
+* **skills:** updated ([d817022](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d81702251469250be5240f7657e5de2993a34ff3))
+
+## [2.34.1](https://git.b4mad.industries/agentic-forges/forgejo-mcp/compare/v2.34.0...v2.34.1) (2026-08-21)
+
+### :repeat: Chore
+
+* 🔧 add castra:release onboarding preflight check ([e50d68b](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/e50d68b7cfdcb6d07b191175767bbcb71d11135d))
+* 🔧 add release-manager list to OWNERS ([c2a592d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/c2a592d8aefdbb899f0423e9f7121300a8698b15)), closes [#523](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/523)
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 7199380 ([72cad89](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/72cad891e3812477c14aed7aeec35234db521fbe))
+* **deps:** update quay.io/hummingbird/go docker tag to v1.26.7 ([d05f651](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d05f651d281a08127d7f7ca936f555b1a2b02aa0))
+* **deps:** update quay.io/hummingbird/go docker tag to v1.27.0 ([12c46f1](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/12c46f11fd41f7ac82c394f3170f74e2452fd751))
+* **deps:** update quay.io/hummingbird/go:1.26.6-builder docker digest to 9985f49 ([b9b2ff6](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b9b2ff64d7d523f70bbd8656b9f5ac2f196e9d15))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 053da9c ([99d63ee](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/99d63ee0d144de7ec6e6fad21e7718fa04460482))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 8602056 ([6e60d3d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6e60d3d7512657b6a9ae2ea5de2a24ebf82022f7))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to 8b25151 ([4734040](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/473404035e81e38a85547a50d473ce9da1224605))
+* **deps:** update quay.io/hummingbird/go:1.27.0-builder docker digest to ad74bc6 ([c35811e](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/c35811e7726c188f71acd77710e989362a05e3d2))
+
+## [2.34.0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/compare/v2.33.0...v2.34.0) (2026-08-19)
+
+### :sparkles: Features
+
+* ✨ carry Forgejo's X-Total-Count as total_count on paginated envelopes ([a0e0f07](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a0e0f07dbc701b9431ea603dff7254f6969b5134)), closes [coordination#307](https://git.b4mad.industries/agentic-forges/coordination/issues/307)
+* ✨ print a Claude prompt after creating the PR review molecule ([90b8427](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/90b8427b100ec5d631f56978331c7a1814f5b07d))
+* 🔒️ make file_path attachment uploads opt-in ([8b35313](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/8b35313ea0007bb3c5cafbef06efea693c45d299))
+* **attachments:** accept local file paths ([e25565c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/e25565c2a1e10ae0af4f5af9a86e284ca88df631))
+* **issue:** expose due_date on the issue resource template (daikon[#93](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/93)) ([78fab02](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/78fab02772eab35798cc6d0f2009c5cd666716d0))
+* **issue:** expose due_date read/write/sort (daikon[#93](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/93)) ([bc48f91](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/bc48f9129cba76d5879de17c75901f4b39cdab99))
+* **resources:** bounded issue-list and comment-thread resources ([5a8d606](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5a8d606d1dfa0eb72e9435e912fab12e7d07c064))
+
+### :bug: Fixes
+
+* 🐛 correct the branch_protection rule encoding guidance ([d0ca05c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d0ca05c8d1a968ccb6b61ece3130a59baf7b13be)), closes [#503](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/503)
+* 🐛 drop total_count where Forgejo never sends X-Total-Count ([c5700f9](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/c5700f9de6836df6a6bb5e759a90f94703a223ea))
+* 🐛 label resources dropped a row per page and ignored the query ([1ba62fa](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/1ba62fabdef8001d42b413b1dc23bed2676a80de))
+* 🐛 offset comment threads that fit within one page ([354ef07](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/354ef07b613d889f90bf35c68e0f24d64dbecc5a))
+* 🐛 read wiki revision totals from the body, bound the page total ([36a8653](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/36a8653abc2e77d65498d75a08d5dff8f96cd9ef))
+* 🐛 stop the CI guard reading a stale PaC status as a failure ([31bdbbd](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/31bdbbdfa9bae502342aa4d8a18315981311d63f))
+* 🔒️ escape the release attachment API path ([beabef9](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/beabef9e7d3ff7ff05fc9efaffb6680c0ba2587a))
+* 🔒️ stop passing the PR title through PaC substitution ([36c5e39](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/36c5e39516d53e4ec9bedcff10d3fef8c55b9dfc))
+* **deps:** update dependency @fission-ai/openspec to v1.9.0 ([f4b3239](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f4b323994b4d6ded3c8d61379ca5c14ea6c6bd8f))
+* **issue:** stop the sorted issue listing swallowing a missing repo ([6681329](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6681329741d27d1a77ceee0d53d72a5fdae1208f)), closes [#483](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/483)
+* **openspec:** keep requirement statement intact ([73d4d9a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/73d4d9a69ee042a526f720d9b4ea15057e03d4c5))
+* **resources:** register the bounded list templates with their query expansions ([d879ca1](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d879ca13233871ccc7e143b89fcec490e23bb1ff))
+* **resources:** stop the bounded lists skipping a row per page boundary ([be9e4b4](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/be9e4b4a330c16e61cd4f5883c120738ab17a044))
+
+### :memo: Documentation
+
+* 📝 correct the design decision that prescribed the over-fetch ([53262f2](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/53262f2e1ffbb5d48eaac1eaaefccdfdf7eec7f1))
+* 📝 credit pisco for the file_path attachment uploads ([db57c36](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/db57c360733b3a8fa618241fbf96377804d35647))
+* 📝 distinguish envelope total_count from resource-local counts ([65a12d4](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/65a12d4e48a4350a213a06fc7289c0e6d11c093c))
+* 📝 document the tag pipeline that runs after `just release` ([abac3e9](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/abac3e95a6020e3b31665c687c011ecbb10c2068))
+* 📝 openspec proposal for the total_count envelope field ([f2abc85](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f2abc856de76bc85ee119c048057b03d3458a537)), closes [coordination#307](https://git.b4mad.industries/agentic-forges/coordination/issues/307)
+* 📝 propagate the client-controlled bound to the collection rule ([1dc6aba](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/1dc6aba87b8e066326f8052b66fc4ccdb8d391fa))
+* 📝 re-capture the file_path demo against the upload gate ([87b3781](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/87b37813fbdfe2706bbbedfb16bca076ac6ada80))
+* 📝 state the %2F requirement for slash-shaped label filters ([e4400f4](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/e4400f4f73971f7c7119ad76dfb6f0925f0b5e83))
+* 📝 state the paging invariant by contract, not by header ([74df574](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/74df574e10c78917a57026da94c692bf42838964))
+* 📝 warn that an unknown label filter returns everything ([0111e7e](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0111e7e256b573f1a5a181660dd844fea713e590))
+* **demos:** add file path upload proof ([01af0db](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/01af0dbdc69ee82972314e5e1c7c1144971e4c8d))
+* **demos:** bounded issue-list and comment-thread resources walkthrough (showboat) ([4ef4be2](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/4ef4be270ff6710c2e61f8603653c9179ca5226e)), closes [forgejo/forgejo#1024](https://git.b4mad.industries/forgejo/forgejo/issues/1024)
+* **demos:** complete the bounded-lists walkthrough against the fixed template registration ([b70cfe3](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b70cfe31fa3e11beca80ff059b4ec5b25c770b23))
+* **demos:** issue due-date walkthrough (showboat) ([596566c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/596566cd71688412869eed39baaf79e70f4a551b))
+
+### :white_check_mark: Tests
+
+* ✅ assert a zero X-Total-Count marshals as total_count 0 ([7d0e1db](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/7d0e1db036aa34290407ca36a76baa93d585c42c))
+
+### :repeat: CI
+
+* 🚀 assert CI actually ran on a PR, not merely that it is not red ([49b3a7c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/49b3a7c264586bafa53eddc29343aa684f415c24)), closes [#483](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/483)
+
+### :repeat: Chore
+
+* 🔧 allow synath to trigger CI ([ece8042](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/ece80423e54bf1b132464bfb101b4ca02af3cdb5))
+* 🔧 archive the attachment-file-path-upload change ([9314c90](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/9314c909bfcc81ebb4366411bbe1857d107401fe))
+* 🔧 declare the castra:release label ([8fb985a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/8fb985a845306215d800a9cfc2c85b68f9d0c92b))
+* 🔧 union-merge the beads interaction log ([6c6e8aa](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6c6e8aa2f52f7df80c0b51f5168abb8bdc75e788))
+* 🔧 update enable-semantic-release to v1.4.1 ([f9dedf1](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f9dedf16e8aeadb46eb075ad08439b3a74afb9c4))
+* 🔧 update enable-semantic-release to v1.4.2 ([e6a8595](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/e6a85958fd963cdb54a081b93c89bf13503525f6))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 048d54f ([d219919](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d219919ab5809b8487165b8f0db76e9bbfb531e2))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 1b171b7 ([7fcd880](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/7fcd8808e08c74d53f5f7f89645064f38b2f9d3e))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 6c338de ([61f5127](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/61f51277b329d31d022bbe66a84799284a4841b2))
+* **deps:** update quay.io/hummingbird/go docker tag to v1.26.6 ([13cb059](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/13cb059bb2d5b6e46857b1ce238773edcc523c78))
+* **deps:** update quay.io/hummingbird/go:1.26.6-builder docker digest to 4a8c3a1 ([13e7c8f](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/13e7c8f0e363b15c92d20fe6570fe50aedccbe7b))
+* **deps:** update quay.io/hummingbird/go:1.26.6-builder docker digest to 4c7a4f1 ([f65e087](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f65e087c19aebec2fdd3c7acdca4d8553a1e60f8))
+* **deps:** update quay.io/hummingbird/go:1.26.6-builder docker digest to b157afc ([1767320](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/1767320be89d0e06e0254a22a29d6425c9c3e971))
+* update the interaction of the beads ([cb10c84](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/cb10c84f586f7bff56e38c1f7bfcf8fe3300247e))
+* update the interaction of the beads ([0b91026](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0b910265bf1f278dea2991e8d7744aa5e2e139ba))
+
+## [2.33.0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/compare/v2.32.1...v2.33.0) (2026-08-14)
+
+### :sparkles: Features
+
+* ✨ add assign-and-request-review step to PR review molecule ([a946664](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a946664f876274299d645babfe5e567ff8cbfb34))
+
+### :bug: Fixes
+
+* 🐛 point the release preflight at the canonical remote ([4d9bbf4](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/4d9bbf435eb2fa8d48d5213f3bf067eee9ff79cb))
+* 🐛 reverse inverted dependency edges in PR review molecule ([dd0ee2d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/dd0ee2d9e1b4b44a1978e8f1b27aba103046d9a1)), closes [#487](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/487)
+* 🐛 stop the client singleton from killing the test binary ([6f9ed7d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6f9ed7d935062b2ab66b1739b02353bd5c7909f7))
+* 🔒️ escape user-supplied segments in raw-HTTP API paths ([39c083d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/39c083d4dd42547efda7f065b2a6586e310919f1))
+* **deps:** update dependency @fission-ai/openspec to v1.8.0 ([107bd44](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/107bd44882107b515d454dce7052e966d80ebc4d))
+* **deps:** update module github.com/mark3labs/mcp-go to v0.58.0 ([99b3da3](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/99b3da385e0ffa4e987ce85569cb80b4cd81cc54))
+
+### :memo: Documentation
+
+* 📝 correct the dolt push and stash session-completion steps ([666a38f](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/666a38f241fc82027a14f5f995d3614784c3c60c))
+
+### :repeat: Chore
+
+* 🔧 add repeatable PR review molecule ([d69c51c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d69c51c86c443558331c4605014d121576b59fdd)), closes [#481](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/481)
+* 🔧 catch hard-wrapped openspec requirements before CI ([1b59bcb](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/1b59bcbe492d92ac16d3f888c7df9942f5fcfa1a))
+* 🔧 close PR [#483](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/483) review molecule beads ([ee75486](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/ee75486b20b521877ea555c07579e6adbca04d61))
+* 🔧 close PR [#487](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/487) review molecule beads ([fd4590d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/fd4590d7d4e02a16fe204a830cf60cde3904f696))
+* 🔧 declare the label vocabulary in .castra/labels.json ([19a0059](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/19a0059e6386f9613b10efbc195a27818dab81a0)), closes [#487](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/487)
+* 🔧 record PR [#483](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/483) review session in beads log ([ee5fa7c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/ee5fa7ce8f6907ee15f0b289df4d1ba570f853a8))
+* 🔧 record PR [#487](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/487) review session in beads log ([14be491](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/14be491fe8ce2957c8fb2d94ddc0125030b2fb81))
+* 🔧 record the API path escaping fix in the beads log ([8f3009a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/8f3009a9d9d5ca86362624311c21d1452d9d6b43))
+* 🔧 record the flaky-singleton fix in the beads log ([d259f7c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d259f7cb3714f2c010976dfe1fdd6ac235442e28))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 101a09d ([694014b](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/694014bc7f73e0f29bd7548544227634876ff6fa))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 4ba8960 ([7180757](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/7180757ac10020c822d7e73d83316931e0521f5c))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to a4e512a ([2d79edf](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2d79edf751afd2f7e555eed6d3ab1d4e4f96f52e))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to ba6d97c ([84ca7f4](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/84ca7f42cc9f97a4749f14caa1c3fbeca7364d6a))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to d885d5c ([6a7e35c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6a7e35c704cd95c9d94fa1568b4b0eebca6e51f8))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to eedfa67 ([1180194](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/1180194af5d888e00f2557f39d78def732480e2e))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to ef510aa ([69745e3](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/69745e3e0a8d6a6107730a27390d8fd869bbe420))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 0ce86d3 ([3eca879](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/3eca879e4db848a50ad97a9423b8838f9d39372f))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 1864beb ([5eaf586](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5eaf586d5cdfced50690beac9a7e7599e6dbae00))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 5f331df ([ce563bd](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/ce563bdc3f2a5340cfaff976819c397ec2e4ac0c))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to aef1550 ([ddb600e](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/ddb600e0fc3d3865c24921fd8778ae12c05c3ab0))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to c7c22dd ([0758352](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/075835258e6a205f9bdd6798f6b3ee2503269bf7))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to cc410e4 ([320b329](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/320b329680e1fc4a1664c4a6fdf7985e6a9c1070))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to f0ec1a4 ([0f951b8](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0f951b84d322c72115b8600864db77b8aad0b59a))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to f61609d ([6bdc4ee](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6bdc4ee4689b176f02e5a76935b0c737734e1853))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to ffd9384 ([c8f64ea](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/c8f64eaf0df03e0a2ed0f98d913415bfdf595b47))
+* **deps:** update registry.access.redhat.com/hi/go:1.26.5-builder docker digest to 1864beb ([2ccd0c6](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2ccd0c61cf04264de58a4ea0aef3d70932a1af00))
+* **deps:** update registry.access.redhat.com/hi/go:1.26.5-builder docker digest to 5f331df ([f533799](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f533799019ae85fc5f9b8526ab72bc991b729345))
+* **deps:** update registry.access.redhat.com/hi/go:1.26.5-builder docker digest to aef1550 ([d62a813](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d62a813892c96ba58b4c944140528780a71462c1))
+
+## [2.32.1](https://git.b4mad.industries/agentic-forges/forgejo-mcp/compare/v2.32.0...v2.32.1) (2026-08-06)
+
+### :bug: Fixes
+
+* 🐛 move Repository CR out of .tekton/ so PaC can resolve PipelineRuns ([ac51b0f](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/ac51b0fc12eb2a3146600408d66ff784759c8e3f))
+* 🐛 rename Go module path to git.b4mad.industries ([2f20def](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2f20def2527c896f3e20d3f18f707f2fbd725b43))
+
+### :barber: Code-style
+
+* 🎨 gofmt import order after module path rename ([6578126](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/657812609b407fa447d19b3b70619241aa1ef50e))
+
+### :repeat: Chore
+
+* 🔧 add gofmt pre-commit hook ([dc7b733](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/dc7b7334a46140ad908f222fe7a993d6282af61a))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to a68f467 ([6648a90](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6648a90e03cf864c0b04c56278d14408ccfc58a4))
+
+## [2.32.0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/compare/v2.31.0...v2.32.0) (2026-08-06)
+
+### :sparkles: Features
+
+* ✨ add search_issues for org-wide issue search ([2470d6f](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2470d6ff38cea69add1d180f15d1c05e73b0eaf0))
+* 🔧 let Renovate track the Go module dependencies ([dbe018f](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/dbe018f5f5c6231a4f3b5c2f108c94651740662a))
+
+### :bug: Fixes
+
+* 🐛 enforce the instance pagination ceiling in search_issues ([32f0dda](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/32f0dda45acf12c033a7da5d447f84e43c794a40)), closes [#458](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/458)
+* 🔧 fold the dead release-tools Renovate config into the root ([11863e1](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/11863e1c97c02be2cde263833ccc1291629ab25b))
+* **deps:** update module github.com/mark3labs/mcp-go to v0.57.0 ([37e4923](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/37e4923706e6b6cd4a4a631cd574fbc3435c059b))
+* **deps:** update module go.uber.org/zap to v1.28.0 ([c8e8ebf](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/c8e8ebf9409aac8f1c38d2e760598e4a4e67dc0e))
+
+### :memo: Documentation
+
+* 📝 add openspec change add-search-issues-tool ([4f5e458](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/4f5e458d76476747ababe0fffb7af17fe6a73e17)), closes [#452](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/452)
+
+### :repeat: CI
+
+* 🚨 drop PaC annotations that on-cel-expression overrides ([c78b332](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/c78b33208a0b761689726a1b6a146af780475535))
+
+### :repeat: Chore
+
+* 🔧 archive add-search-issues-tool and sync its specs ([2822ccf](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2822ccfd2d7f7baa4521d5c34a2b839fb692f641)), closes [#458](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/458) [#452](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/452) [#458](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/458)
+* 🔧 enable semantic-release driving for this repo ([c7cf825](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/c7cf8257c22d9de626352e0f86bdf83de6b6e2cd))
+* 🔧 pin release-tools base image to a versioned tag ([fabbc2d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/fabbc2de7b8627b2c3ed9e6bbaed97725e2f05b6))
+* **deps:** update dependency sigstore/cosign to v3.1.2 ([884461e](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/884461e2555ca354434850b0a6051bbd99cca952))
+* **deps:** update dependency sigstore/cosign to v3.1.3 ([2f7150a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2f7150a7c85557b2f0e9f9be9bbaff1225c7a6f9))
+* **deps:** update module github.com/google/go-licenses to v2 ([8fcd322](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/8fcd322262d8eeeecc4db9cb2c1c4c0ccde82ae0))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 58b11e4 ([90339f8](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/90339f8e061cac08490aa131517ed1ffacf038bd))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to cbcd782 ([74700fd](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/74700fd77b1c960e3fbce22f48fc764e474361bf))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to b163b54 ([89cbecb](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/89cbecba38ebae55ac0d8e3362e2254200b948cb))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to bed8c1b ([b0cf075](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b0cf075c0e261942315f2fc8939530623ac62a57))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to fe0672d ([2bc56fd](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2bc56fd780e6706809a502d8c539c5f56da7b7b3))
+* **deps:** update registry.access.redhat.com/hi/go docker tag to v1.26.5 ([cdac10e](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/cdac10e9e3cecafe5c0e3abef4880284e7e24c69))
+* **deps:** update registry.access.redhat.com/hi/go:1.26.5-builder docker digest to fe0672d ([6732c18](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6732c1826d24d976e396064b6466da9f90404656))
+
+## [2.31.0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/compare/v2.30.2...v2.31.0) (2026-08-01)
+
+### :sparkles: Features
+
+* **actions:** add bounded workflow job logs ([34e1ca2](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/34e1ca2da6ee30d46db8fe2b0e9df970c170dfec))
+* add direct REST wiki support ([5b89508](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5b89508fdab43cae347363a3f37e9aeb7634988a))
+
+### :bug: Fixes
+
+* **actions:** address review round 1 findings ([b8ce4f5](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b8ce4f5af50d383ca167a2b1416b25e20079183f))
+* **deps:** update dependency @fission-ai/openspec to v1.6.0 ([2986300](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2986300d689d40f1441c982f220fd10f5bb12a24))
+* **deps:** update dependency @fission-ai/openspec to v1.7.0 ([04b1229](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/04b1229e8bed5632d6b4dcb61bf66de92cdb3894))
+* **issue:** align dependency pagination docs with project standards ([0b58656](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0b586567375b085e027fd0a141c360f9f6720eb4))
+* **issue:** correct dependency API contract and polish PRD ([3d5d3d0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/3d5d3d06458886afc7091f7c6e678f51962b2a42))
+* **wiki:** harden MCP contracts and pagination ([1d75d00](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/1d75d00ebdc06176f44b830963e2ffd9bc191191))
+
+### :memo: Documentation
+
+* 📝 point project URLs at forgejo.b4mad.net/agentic-forges ([373bc11](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/373bc11e1c9848874ca3802085100912b0dd4646)), closes [#NN](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/NN)
+* 📝 point readers at [#forgejo](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/forgejo)-mcp:b4mad.net for chat ([a3684b9](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a3684b93fb2c15008458efd65783fd2b38d1a895))
+* 📝 rename the release identity to b4mad-release-agent ([89071b9](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/89071b95572d01deb808f8feae0217257697ca00))
+* 📝 use the current repo path in the example prompt ([a71cedc](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a71cedcb64c5914802d9840889d819fec231f84a))
+* **openspec:** record wiki issue handoff ([5aa1940](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5aa194020cade1c361c5b12aaa36daecdf12bc4e))
+
+### :repeat: CI
+
+* 🚀 repoint everything at git.b4mad.industries ([9cd5b7c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/9cd5b7c078142ac14fb6fc46feefdff5328d36d6))
+* 🚀 repoint the release pipeline at forgejo.b4mad.net ([95f4f9c](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/95f4f9c8842cc0abc0f9445bbda31d3bbd94fe61))
+* 🚀 smoke-test the restored PaC webhook path ([8f07dae](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/8f07dae99d81070582bc79643621e0529a99d644))
+* 🚀 verify webhook signature validation ([34aab16](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/34aab16189fa936f49d30f67230b59e9c41aeebb))
+
+### :repeat: Chore
+
+* 🔧 add the b4mad MCP server and the castra triage persona ([327e9eb](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/327e9eb95cc32eb83361ea3fc6bdf72b7f163834))
+* 🔧 stop Renovate rebasing green PRs into CI churn ([32d99a8](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/32d99a8eb82785fecf858afaecd71d63c7347a23)), closes [#359](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/359) [#324](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/324)
+* 🔧 vendor the caveman skills, mark .agents generated ([58f003d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/58f003d9168b01a335d4cbabc2f6eaff94447981))
+* **deps:** update quay.io/hummingbird/core-runtime docker tag to v2.43 ([b94b4dc](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b94b4dcad401e5885746ed82749f5eb7ca20ba4e))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 04d24b9 ([2011c23](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2011c23320061df47f10c7c58e6a763d3ce4e567))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 32b7159 ([dece263](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/dece263349718b45f962c04f166f6b5129a41281))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 578a83d ([547a677](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/547a677d23bbc5ef33942e9413fa3176f842fbba))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 6ed1fc6 ([b8c4144](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b8c4144852cfe27a1bfa95ab3e4a92d86906a511))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 80bd4bd ([1cefce2](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/1cefce278f463c9826dcd77cf651884b59bdd486))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 812c3ee ([ab9eaea](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/ab9eaeae7fbaac3ec9d92496385895e481aee7bc))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 8792ecb ([21e924a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/21e924af55e92e0dbcfb517a330e87f15dd7507f))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 8e597a2 ([89fd1da](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/89fd1daaed60eeac16a7d080d8d37ed332c866a6))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 974dec5 ([ead8791](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/ead87918464cbd26f1ea99ced27d6d407665b64c))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 9d7373f ([5ffc5e9](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5ffc5e97d9100873cc1926e2d2f410aae4af393f))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to 9eee418 ([704aab6](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/704aab666e4cac2e439d59c2100080bf788a1dcb))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to a46b9b1 ([1822023](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/18220235b2643d36e41f8514f63e903741df3c53))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to a7366ae ([9b9489a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/9b9489a7f8586dd4300aacaae0567bc4a9e28e4c))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to a9acec2 ([fd4cbfd](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/fd4cbfd686b23e81c2d25d5301225c872514a5a8))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to afde3d5 ([fb7e484](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/fb7e484eea5028b6fd73ecc74a01a7cda92a569f))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to b1cc97b ([11bdec2](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/11bdec23ff94ecab8f31e1ea914ad48da1de2e8a))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to b437b9e ([a571c8a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a571c8af62ad2f7ac629d146a465987bc4aaf2ad))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to b714444 ([201910d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/201910d09d3493871d10082c6f6577717f475523))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to caa7dad ([0046a1e](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0046a1e7379bee4ccfc9f51e3e26690a43de6855))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to dda9f3b ([8a56be7](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/8a56be73c9e9a621917abc69d8a3988bd033a313))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to dfbb233 ([4239c53](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/4239c537faade12a8377cfea0a0c0e4150a268d9))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to eb50a53 ([89031a7](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/89031a7085852766927b681accde6d0fe171f1a3))
+* **deps:** update quay.io/hummingbird/core-runtime:2.43 docker digest to ff4c6de ([0672382](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0672382d0528bfdb56db437680556a4d621b8464))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 021bbd4 ([2be6bd6](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/2be6bd663f757ecca669077f37f08fcc0b419237))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 0ab57a8 ([59ba14a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/59ba14ac10d5c71ca70af8a36b952c3c99cbb745))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 152f522 ([4939b71](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/4939b71445a6ab901b8692e0a08d5045775a7db9))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 1c1f746 ([4b05f68](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/4b05f68fd5ed8a095aae1d07ddfbadb9aa5bcf92))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 23a9a54 ([f805fa0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f805fa0483ffc26a00abc7d73da88b7191cd929d))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 26f5412 ([33e5648](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/33e5648fea5ee933e60ba1e02479390c73054a0e))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 2d3c2ea ([6fc6173](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6fc61734f23dd6928d0d05a238a3c76c41c6803a))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 386af8a ([f223721](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f223721190af180c8175cd8c66046f005f418184))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 38f1f53 ([4f9a8bb](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/4f9a8bb366ac1272380f69c5c4514d265063d8d2))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 3a459a6 ([0ddbf75](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0ddbf754e2b270136069faeee2569c1436c39606))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 450f262 ([8704b6d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/8704b6d9b9ca80b8b0a55d449860354f804ca682))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 4e697bd ([08e1a2d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/08e1a2d4f379621d4c6666dcb410332982adab77))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 5ce47e5 ([a914bd0](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a914bd0e8e199e5e25ca6b4d8d445ad41c742eca))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 634c081 ([bf3e4bd](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/bf3e4bde50b1ce13e8ab2a7470d58d706adedc1d))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 67bdbac ([63029a6](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/63029a681ee29c45c78550c9524eeb697b6c17b3))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 716b640 ([c0c0477](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/c0c0477c0be1527b0f6539f06f0d7079111116ee))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 838fa56 ([b674dac](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b674dac69a59928cd5701ac1845a81612a284ad3))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 990373b ([a334f8a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a334f8ac78fd6132342193666683145cd557fb8b))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to ad63284 ([0f2525e](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0f2525e701dfe8f810a99cc4cb7f95f67ad25765))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to c2c7b0e ([a6a2cf4](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a6a2cf4f3bd503ee6a43944ed0c22fddfc09d790))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to c7231fc ([5598a32](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5598a3245c13711b18ec95760a02c0a9ed02fe4e))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to c9bbc33 ([a9c3bdb](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a9c3bdbde0dcad3a37e8222f1210a3ac8303ea1d))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to e13883b ([3350a06](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/3350a060f574f6e387541a9391ddf01a266534a5))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to e84c697 ([faa0861](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/faa086141e07ece8144ff5d24951690e86f706c8))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to eaad4f8 ([8c232f2](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/8c232f2750ab7323fa8842c404b615d585c51cf7))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to ed2ffa3 ([9cdb03e](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/9cdb03e20668d1ca159b274658b50c141a9f6ad2))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to f5f3780 ([5989701](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/5989701c64dfc29477006874fe6eaaf22639c328))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 021bbd4 ([f5b2c77](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/f5b2c7758c04bd5e6c03862537d89a4f7aa7384b))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 0ab57a8 ([6910085](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6910085203c49a989bbb2800756e14dd00fe7050))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 152f522 ([8bcc909](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/8bcc909b7a485e0d1935ad41e5aeb09f8983a225))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 1c1f746 ([85fe842](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/85fe84298a2eb834a673a054420830e8d77ebfd5))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 23a9a54 ([6f966f6](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6f966f6838f154923e931b52250cb29a26bd0f69))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 26f5412 ([fc96503](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/fc96503b93aa8fdf38ffe9ad8d7455e98878c183))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 2d3c2ea ([0d2e080](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0d2e0800eb3afecd12935edef983ac3b0e2e7b86))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 386af8a ([b03fda1](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/b03fda14c79ff30e709600979e075373995d9a53))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 38f1f53 ([560151d](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/560151d90e32cb55fe2aae56bcf8d497b3c6bcdd))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 3a459a6 ([7cc3ab1](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/7cc3ab1a2fe0a091eee0b65ebc927ca91732d5ea))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 450f262 ([d7402cf](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d7402cf8514b59a512cae81528f946d7577855cb))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 4e697bd ([e1190a7](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/e1190a7aeeedc53345f1e9a8785a28746d10f222))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 5ce47e5 ([153908e](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/153908e07bda69da0a0a7f4bb71a3a8ee15b3ae3))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 634c081 ([d201e72](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/d201e72b475cb5167f6e7196a553cb4e89df74cf))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 67bdbac ([760d6ac](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/760d6acc8594670914010dbee457f972c24e6473))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 716b640 ([94efd06](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/94efd06de52a8d957257a56c4d0bb5e42f83db2f))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 838fa56 ([6177778](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6177778867d8ef073c2b7dfdbacb817f88eb54de))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 990373b ([6985ab9](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/6985ab9489b9a9afe74443517bb44b82a333fca7))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to ad63284 ([0d27f17](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0d27f170468ef6771b3b0907859ccdbbee2bbb86))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to bb55321 ([4ef087f](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/4ef087f068a246723e4667fdbfc8d5431ede0bec))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to c2c7b0e ([0ec3681](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0ec3681da77caea68cce6dcd5ff8aeb51dc6a293))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to c7231fc ([9807fc4](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/9807fc46cc4db3dd710eb041f652cb4a0a7cbfdc))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to c9bbc33 ([0d0c5ce](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/0d0c5ceb67f82aa886dcbeab5cde30016c4b4394))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to e84c697 ([a45a9ae](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/a45a9ae6cd207235889e7e9020ee7871a1db467d))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to eaad4f8 ([65cd84a](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/65cd84aa8480c89cc2ed09554636b48291b0c309))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to ed2ffa3 ([731cf20](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/731cf20328e565a33221776fd1be655606d55d2f))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to f5f3780 ([71158cd](https://git.b4mad.industries/agentic-forges/forgejo-mcp/commit/71158cd1a803cc6b5fadfa25a5033d9230e80ffb))
+
+## [2.30.2](https://codeberg.org/goern/forgejo-mcp/compare/v2.30.1...v2.30.2) (2026-07-13)
+
+### :bug: Fixes
+
+* **deps:** update dependency @fission-ai/openspec to v1.5.0 ([c3f1379](https://codeberg.org/goern/forgejo-mcp/commit/c3f13799f2869c23d7b44dc1a1d0d1eaf34fe8c9))
+
+### :repeat: Chore
+
+* **deps:** lock file maintenance ([c2491c9](https://codeberg.org/goern/forgejo-mcp/commit/c2491c9b2c5c3ad6c0fac744c38001ffe2da3da7))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 07bd41e ([f95f445](https://codeberg.org/goern/forgejo-mcp/commit/f95f44525cc1f8f7b133b0e375b600b2dd3479d6))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 211ba12 ([bdb1b82](https://codeberg.org/goern/forgejo-mcp/commit/bdb1b82482cf29eb31e2721fe0346f5a4a3fc71b))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 33d3baa ([533ea1d](https://codeberg.org/goern/forgejo-mcp/commit/533ea1d098cdc7ac428aed9aacaa4e6da9cf8ef7))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 593ca4c ([05f00bd](https://codeberg.org/goern/forgejo-mcp/commit/05f00bd963112e1cd401dd086511c17442c3f8b8))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 809fd66 ([1a83862](https://codeberg.org/goern/forgejo-mcp/commit/1a838628a60cceea535b1a96236491308ab6fa3e))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 8f62834 ([946b6af](https://codeberg.org/goern/forgejo-mcp/commit/946b6af58af944e2c7cee82af6b01acd83e7e734))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 9c7c855 ([7ea5166](https://codeberg.org/goern/forgejo-mcp/commit/7ea5166ad9eaef20296a06437c5200ef02f8e2d6))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to b93bfca ([02922f0](https://codeberg.org/goern/forgejo-mcp/commit/02922f061d044a761dba3b9ef7baef4c152cd7e3))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to bc61e28 ([95fc41a](https://codeberg.org/goern/forgejo-mcp/commit/95fc41af8095cf17e744a2f02acf4a345293b01a))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to e9962e0 ([6838df3](https://codeberg.org/goern/forgejo-mcp/commit/6838df32e3c08d61d38cf22cbbc093cc69db758e))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to ed1c759 ([e4f3091](https://codeberg.org/goern/forgejo-mcp/commit/e4f3091727a2bb7c791513ab9b40b2ab46abcd71))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to f2f612f ([b8dfaf7](https://codeberg.org/goern/forgejo-mcp/commit/b8dfaf7b9a3450379e8fa036c40540b4c3a8e2a8))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to fa6f3fd ([7c814fc](https://codeberg.org/goern/forgejo-mcp/commit/7c814fcc9ef071a535e28b55def21b44104b8ae4))
+* **deps:** update quay.io/hummingbird/go docker tag to v1.26.5 ([d293021](https://codeberg.org/goern/forgejo-mcp/commit/d29302151a88a47875cf19a15b580dd4a4586f01))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 0f0633c ([5cb77ef](https://codeberg.org/goern/forgejo-mcp/commit/5cb77ef10871a1734b83c7cb1f18fe4c492f927f))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 1634469 ([67a0983](https://codeberg.org/goern/forgejo-mcp/commit/67a0983c27a8659fadb7819f378bfc535102d04d))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 1bc9784 ([1b40047](https://codeberg.org/goern/forgejo-mcp/commit/1b4004707ed2997fd3d556c9d83d866496123e9c))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 251a065 ([6e15a88](https://codeberg.org/goern/forgejo-mcp/commit/6e15a88b38a3b4905b3ce12a0fcdb743e3ce7fe6))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 3506056 ([278c9c1](https://codeberg.org/goern/forgejo-mcp/commit/278c9c135f0831bbd06b5906c9452626dbef5143))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 535beba ([fef1c41](https://codeberg.org/goern/forgejo-mcp/commit/fef1c41030e11ca7ae0b841401406a6eec5be24f))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 5be929c ([c4222ff](https://codeberg.org/goern/forgejo-mcp/commit/c4222ff67061fb23980d2b2a9868bc88952cc5e0))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 5c775f9 ([272604f](https://codeberg.org/goern/forgejo-mcp/commit/272604fd74b9f1ceb84cb77b711365b121f620e9))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 93d243a ([fede031](https://codeberg.org/goern/forgejo-mcp/commit/fede031793d340ebd98e4340cbc46a188aa5c1ff))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 9c4562b ([af1fc85](https://codeberg.org/goern/forgejo-mcp/commit/af1fc85b9ec61c852a7f0262141c77e9ee3f4b18))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to d1c6067 ([945abb4](https://codeberg.org/goern/forgejo-mcp/commit/945abb4ef9a35a6c63d20459967e69b0dd23344d))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to ebea8c5 ([0a84e66](https://codeberg.org/goern/forgejo-mcp/commit/0a84e667201f99289fecdfd558e48128e8da465d))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 050af63 ([c8ca1fd](https://codeberg.org/goern/forgejo-mcp/commit/c8ca1fd158164b09bd6ad44be1344248e2616850))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 1fed154 ([8c72a4d](https://codeberg.org/goern/forgejo-mcp/commit/8c72a4d9fcfd99e9c0e910b494ffe9f2bb394ef9))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 37675d1 ([c9a881f](https://codeberg.org/goern/forgejo-mcp/commit/c9a881f3d2e472742bb34db07323f7aabef0fbc3))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 4161f6f ([b8fda1d](https://codeberg.org/goern/forgejo-mcp/commit/b8fda1d86dae1ae3b01641d106d5a0f860fe20d1))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 56d0767 ([82d4e39](https://codeberg.org/goern/forgejo-mcp/commit/82d4e3913c65df4cb72db3a34abeb30bc79323a9))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to 63ebb53 ([88b864f](https://codeberg.org/goern/forgejo-mcp/commit/88b864f173ffdb10ce4d6721689caa4508e7e1d8))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to aea9ce9 ([05bfba4](https://codeberg.org/goern/forgejo-mcp/commit/05bfba49a5e6046c5826b49e029b24dd41e2109c))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to c0955ae ([a7ec963](https://codeberg.org/goern/forgejo-mcp/commit/a7ec9632f7807d408e61a8d19ed30b1e628f6353))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to d18d719 ([904a227](https://codeberg.org/goern/forgejo-mcp/commit/904a2274c0392e4725b595ddfa5b74ee9959a716))
+* **deps:** update quay.io/hummingbird/go:1.26.5-builder docker digest to e1d04a2 ([9496b2f](https://codeberg.org/goern/forgejo-mcp/commit/9496b2f80759800dda3b8594f5c4047fd73836c0))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 050af63 ([dfaf375](https://codeberg.org/goern/forgejo-mcp/commit/dfaf375ca048e0c09b578ecefe27f4220eb81082))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 0f0633c ([45d0077](https://codeberg.org/goern/forgejo-mcp/commit/45d00771a8ac7969b175f404d055ebd4548f12ea))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 1634469 ([8c0bc43](https://codeberg.org/goern/forgejo-mcp/commit/8c0bc43d2c4a3fe3df9483b47993f9125456f4d1))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 1bc9784 ([8da86ba](https://codeberg.org/goern/forgejo-mcp/commit/8da86ba4d7062537a50949c6d0f4e131b810ee04))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 1fed154 ([e83090b](https://codeberg.org/goern/forgejo-mcp/commit/e83090b26fc2b8b49753ebf99204ab069e83e7bc))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 251a065 ([e39447f](https://codeberg.org/goern/forgejo-mcp/commit/e39447fc2c36190f5ecda67867d57690d616791d))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 3506056 ([3bec3ab](https://codeberg.org/goern/forgejo-mcp/commit/3bec3ab1904c7338fd5a5367dca0cd91be8d00f9))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 37675d1 ([8e911a9](https://codeberg.org/goern/forgejo-mcp/commit/8e911a9cc71e4e5dd498d892cb38eb97492d779e))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 38af991 ([0f00ea6](https://codeberg.org/goern/forgejo-mcp/commit/0f00ea6f685de6984c891cc21f2761238c8a5017))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 4161f6f ([febb744](https://codeberg.org/goern/forgejo-mcp/commit/febb74498539b26fdca863328584f2100c3a89ee))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 535beba ([a0afc4e](https://codeberg.org/goern/forgejo-mcp/commit/a0afc4e2398e577f13ab71f55c053c6033ced305))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 56d0767 ([150c3af](https://codeberg.org/goern/forgejo-mcp/commit/150c3af9991af275ac2b5aa0f8986b0259cb68f5))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 5be929c ([3f25fb6](https://codeberg.org/goern/forgejo-mcp/commit/3f25fb610e2dfbe5bd562dac60912053b8be2ac5))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 5c775f9 ([276e63c](https://codeberg.org/goern/forgejo-mcp/commit/276e63c948459728875e764c65eb41f1b15811e0))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 63ebb53 ([37e6429](https://codeberg.org/goern/forgejo-mcp/commit/37e642942896dfa3d50ef33807a4ca9447d072dc))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 6b7f751 ([cd6dceb](https://codeberg.org/goern/forgejo-mcp/commit/cd6dceb0a605ef0b5d7e1b0e6d01900c0e8ddacd))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 93d243a ([58c0f5b](https://codeberg.org/goern/forgejo-mcp/commit/58c0f5bc34b57b4a5f5ad12fa4db3e0284d9fdd3))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 9c4562b ([d41f087](https://codeberg.org/goern/forgejo-mcp/commit/d41f087b0c2797baa79039509f32ffee986ba086))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to aea9ce9 ([4789cf4](https://codeberg.org/goern/forgejo-mcp/commit/4789cf4f3062f915195b4f88256758e2111b558f))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to c0955ae ([7037031](https://codeberg.org/goern/forgejo-mcp/commit/70370313d31886488f1198e9f1df053c8a9cbdee))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to d18d719 ([ec5a3f2](https://codeberg.org/goern/forgejo-mcp/commit/ec5a3f287e5dd83f9f8fa452ac7fc1a02a263311))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to d1c6067 ([96c1c1d](https://codeberg.org/goern/forgejo-mcp/commit/96c1c1de22867abe49d6ecd12626bb5877d3ce1e))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to e1d04a2 ([57a4e20](https://codeberg.org/goern/forgejo-mcp/commit/57a4e20fdeadcbf0cdc66ac72616d42c51aa990d))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to ebea8c5 ([bf0936b](https://codeberg.org/goern/forgejo-mcp/commit/bf0936bb244b0e8336ad5a10723592d93b7ac02f))
+
+## [2.30.1](https://codeberg.org/goern/forgejo-mcp/compare/v2.30.0...v2.30.1) (2026-06-30)
+
+### :bug: Fixes
+
+* some go formatting ([16f807c](https://codeberg.org/goern/forgejo-mcp/commit/16f807cfaf589f090fb4486530a526275653614d))
+
+### :repeat: Chore
+
+* 📊 snapshot release download counts ([48c37ee](https://codeberg.org/goern/forgejo-mcp/commit/48c37ee060d612ba0cd742a12587c9072f34ea8b))
+* 📊 snapshot release download counts ([992eb62](https://codeberg.org/goern/forgejo-mcp/commit/992eb629451498ae889ff3750e5b327a533d22cb))
+* **deps:** lock file maintenance ([e70cc24](https://codeberg.org/goern/forgejo-mcp/commit/e70cc24135fcc4135158287c3cb4905f1f2b66ad))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 02ca768 ([364f6dc](https://codeberg.org/goern/forgejo-mcp/commit/364f6dc4fe73941ea2e9294bfdb7df7c87b380fe))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 3fadedf ([51e0cc0](https://codeberg.org/goern/forgejo-mcp/commit/51e0cc081f9bb05db856dd98ab6eabf5c048eb7c))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 47c4393 ([1b07403](https://codeberg.org/goern/forgejo-mcp/commit/1b07403ce998e14edcd074ea9c0b317fe2bde749))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 4a79a53 ([d95eed7](https://codeberg.org/goern/forgejo-mcp/commit/d95eed7b776fd84f196b1d79fb43cba019993a68))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 6b67691 ([e406fdb](https://codeberg.org/goern/forgejo-mcp/commit/e406fdb72e5f1976066da250a1165d9ef31fdb80))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to b9bbc03 ([29ae863](https://codeberg.org/goern/forgejo-mcp/commit/29ae863bfea620e73be3057a7c151e6713007164))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to c77b76c ([3c655e0](https://codeberg.org/goern/forgejo-mcp/commit/3c655e01e6a5b7b00d00c83cbb6e349e38ffc064))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 1dbf14b ([e40512c](https://codeberg.org/goern/forgejo-mcp/commit/e40512cb8f1fdd35e4b12e83ec9bde3a592d78c1))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 2c1f6ee ([4ac6615](https://codeberg.org/goern/forgejo-mcp/commit/4ac661571d1638ec20aaaab118e1daa0c533afc7))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 37676d9 ([6f22c6a](https://codeberg.org/goern/forgejo-mcp/commit/6f22c6a1beb4f6218aa4b1bd0a59f934a7943371))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 41c5a58 ([47da694](https://codeberg.org/goern/forgejo-mcp/commit/47da6946e5dcc63bd262e9119058621c9e75e96e))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 4b5537d ([8fae6db](https://codeberg.org/goern/forgejo-mcp/commit/8fae6dbef6bf3ff755601efbfdacf121ca35370f))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 8615652 ([4241885](https://codeberg.org/goern/forgejo-mcp/commit/4241885b18cd61fe8ba3a0c9b594e444cb44d3f2))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 9508bfe ([91f8cbb](https://codeberg.org/goern/forgejo-mcp/commit/91f8cbb3d189775ae250335c339d295c3d023e64))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to c3232e7 ([2de9295](https://codeberg.org/goern/forgejo-mcp/commit/2de929528c109496fa2821bec047a912c4c74ccf))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to d444a0c ([afaf149](https://codeberg.org/goern/forgejo-mcp/commit/afaf14990764f6ab6b9e331b2f38a0c18cc0961f))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to da4371f ([2d471e0](https://codeberg.org/goern/forgejo-mcp/commit/2d471e04c29665c92eae9edc86ae87ea3a4b05b1))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 1dbf14b ([b8de258](https://codeberg.org/goern/forgejo-mcp/commit/b8de258b50a473f75d8cdaa34a1a4ec411506206))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 2c1f6ee ([8cf823d](https://codeberg.org/goern/forgejo-mcp/commit/8cf823d9188070a3fb448bbd93ee62dd41926a81))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 37676d9 ([8f2d734](https://codeberg.org/goern/forgejo-mcp/commit/8f2d7349dcc406fcae22f91bae50e0f8a0012b6a))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 41c5a58 ([306e47b](https://codeberg.org/goern/forgejo-mcp/commit/306e47b61687a69e3c785c86d7c556af60aba329))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 4b5537d ([ae73e67](https://codeberg.org/goern/forgejo-mcp/commit/ae73e67e300b1fbd63acc8aa8cf5f35a3ebb1bc5))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 6c27dbf ([d0860b8](https://codeberg.org/goern/forgejo-mcp/commit/d0860b89127435fb78aa5f95f4a3b7b6fc767a9a))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 8615652 ([113728e](https://codeberg.org/goern/forgejo-mcp/commit/113728e1d15b234e5690cc16a40e7ec24c521856))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 9508bfe ([70fe096](https://codeberg.org/goern/forgejo-mcp/commit/70fe09675463526c55cddfd218f06821e935d8e8))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to c3232e7 ([cd45f13](https://codeberg.org/goern/forgejo-mcp/commit/cd45f134a3e665de64090d1e52a3fb5d4b9b8bf4))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to d444a0c ([e1e2502](https://codeberg.org/goern/forgejo-mcp/commit/e1e2502e96e5eca944807066b37551d6ac7b072f))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to da4371f ([b223487](https://codeberg.org/goern/forgejo-mcp/commit/b2234878c70c9590c3e8f918cf186f265f57fe1e))
+
+## [2.30.0](https://codeberg.org/goern/forgejo-mcp/compare/v2.29.0...v2.30.0) (2026-06-17)
+
+### :sparkles: Features
+
+* ✨ add OpenSpec change for repo webhook tools (Codeberg [#136](https://codeberg.org/goern/forgejo-mcp/issues/136)) ([a896b4a](https://codeberg.org/goern/forgejo-mcp/commit/a896b4a6cacaf0d7ca5f514153b0eea9ef9c5c1a))
+* ✨ implement repo-webhook-tools (list/get/create/edit/delete/test tools + resources) ([fa64928](https://codeberg.org/goern/forgejo-mcp/commit/fa649287d10550da4ee53b9fa8dc7a6ac7a5b02f))
+* OpenSpec planning for repo webhook tools ([f0228dd](https://codeberg.org/goern/forgejo-mcp/commit/f0228dd7daf8fecfc4053191fb501ec859894f72))
+
+### :bug: Fixes
+
+* 🐛 address opsx:verify findings for repo-webhook-tools ([5719888](https://codeberg.org/goern/forgejo-mcp/commit/5719888f8f60064c36412ecbec00c1e92d106245))
+* 🐛 bug-hunt sweep — 9 issues across tool handlers and resources ([f3be12a](https://codeberg.org/goern/forgejo-mcp/commit/f3be12a1ba720390a8030497112a80730857fba3))
+* 🐛 register webhook domain in --cli list; add showboat demo ([e84c71d](https://codeberg.org/goern/forgejo-mcp/commit/e84c71d58a13e2e5556dcfe0a22912722a010a6b))
+* 🔧 apply battle-test patches C1-C7 to repo-webhook-tools artifacts ([94f5727](https://codeberg.org/goern/forgejo-mcp/commit/94f57273d51de3f73ce64e2fb627b068e6916489))
+* 🚨 clear golangci-lint v2 backlog (closes bead forgejo-mcp-hc9) ([dd9116f](https://codeberg.org/goern/forgejo-mcp/commit/dd9116fbca1e44865587fca4377ad919b9344d2f))
+
+### :memo: Documentation
+
+* 📝 add battle-test and journal for repo-webhook-tools OpenSpec ([458e476](https://codeberg.org/goern/forgejo-mcp/commit/458e47633bf5e12951773599f306aae0b5506b96))
+* 📝 link repo-webhook-tools demo from demos/README.md ([a9d74f6](https://codeberg.org/goern/forgejo-mcp/commit/a9d74f618f4e434328f93e74caf3af3a00b80240))
+* 📝 refresh showboat demo output after opsx:verify fixes ([105afa6](https://codeberg.org/goern/forgejo-mcp/commit/105afa6e319044882137ccfe3e653d304e51a0af))
+* 📝 tick all tasks.md checkboxes for repo-webhook-tools ([a870fa0](https://codeberg.org/goern/forgejo-mcp/commit/a870fa0fe127d86075ba44750183fa4ab7e9e3be))
+
+### :repeat: CI
+
+* 🚀 align tekton golangci-lint with v2 config; enforce lint ([698f0fc](https://codeberg.org/goern/forgejo-mcp/commit/698f0fc9745d32ab3fcf363460f6f5d2a906bd19))
+
+### :repeat: Chore
+
+* 🔥 remove golangci migration backup file (history has it) ([16dc358](https://codeberg.org/goern/forgejo-mcp/commit/16dc358acb3d65e42ab96e57e01121af82cb0efc))
+* 🔧 archive repo-webhook-tools openspec change ([e23c8b3](https://codeberg.org/goern/forgejo-mcp/commit/e23c8b3b5752251e0b3799f3a83cdaf4931e5476))
+* 🔧 close bead forgejo-mcp-9r4 (verified fixed in 748de51); file residue follow-up ([df21017](https://codeberg.org/goern/forgejo-mcp/commit/df21017c00710b23683edd0bf937928103c7f092))
+* 🔧 migrate .golangci.yml to v2 config; drop pointless Sprintf ([59c86b6](https://codeberg.org/goern/forgejo-mcp/commit/59c86b6a40d4e07cd4d0c603aa1e6d2995e5c957))
+* 🔧 stop tracking beads JSONL exports in git ([7d3fc3d](https://codeberg.org/goern/forgejo-mcp/commit/7d3fc3d008fc29927b8fa84e9a4ce903446efa0d))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to 0cded49 ([4285f71](https://codeberg.org/goern/forgejo-mcp/commit/4285f7125ac6160aa559134c8c952d0810bf1595))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to dcd72ea ([385a675](https://codeberg.org/goern/forgejo-mcp/commit/385a675e39c627b8221b3546ca0ef2376637a950))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 2057369 ([124f67e](https://codeberg.org/goern/forgejo-mcp/commit/124f67e62562381b7584615675bac33711b7f64f))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 5110b9a ([540275f](https://codeberg.org/goern/forgejo-mcp/commit/540275f0311acdeec6e0aa41bec8b39abb2a6015))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 6e77e0a ([93ee4f0](https://codeberg.org/goern/forgejo-mcp/commit/93ee4f025e9abada46577fb6a92ed8f093d889d0))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to cc03ec2 ([34d31e3](https://codeberg.org/goern/forgejo-mcp/commit/34d31e30fe90a91f2813593da7cb261f5a85f0ff))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to e6d96a9 ([6da9ada](https://codeberg.org/goern/forgejo-mcp/commit/6da9ada13f2ded39c529df431eed1a251e0fa1b3))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 2057369 ([3c64cc7](https://codeberg.org/goern/forgejo-mcp/commit/3c64cc7a8a477b62ed08c3cde974911df1b18af2))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 5110b9a ([c94019e](https://codeberg.org/goern/forgejo-mcp/commit/c94019e36c9df6cf5b256565a7a102210fbddaaa))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to cc03ec2 ([2476e5a](https://codeberg.org/goern/forgejo-mcp/commit/2476e5ac214fc4b96b2c692be9431af44f90595e))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to e6d96a9 ([4d50bb5](https://codeberg.org/goern/forgejo-mcp/commit/4d50bb5859cc68c687c39d0f0e3a698ff12ca6a4))
+* little updates ([4879140](https://codeberg.org/goern/forgejo-mcp/commit/48791400698c8d323b7bdaa872a3653479f3335d))
+
+## [2.29.0](https://codeberg.org/goern/forgejo-mcp/compare/v2.28.0...v2.29.0) (2026-06-10)
+
+### :sparkles: Features
+
+* ✨ add whitelist params to edit_branch_protection ([cd190ed](https://codeberg.org/goern/forgejo-mcp/commit/cd190edfd019e16af7dcbd556bdc21680ea334aa))
+* ✨ label CRUD tools and resource-templates (closes [#190](https://codeberg.org/goern/forgejo-mcp/issues/190)) ([6c7e0fe](https://codeberg.org/goern/forgejo-mcp/commit/6c7e0fe53d654f018a32f00dc52df52e1f0d709b)), closes [#rrggbb](https://codeberg.org/goern/forgejo-mcp/issues/rrggbb)
+
+### :bug: Fixes
+
+* **deps:** update dependency @fission-ai/openspec to v1.4.0 ([78cb277](https://codeberg.org/goern/forgejo-mcp/commit/78cb277ca9127148bea0481c1b3727d0911c667a))
+* **deps:** update dependency @fission-ai/openspec to v1.4.1 ([3e4eaaf](https://codeberg.org/goern/forgejo-mcp/commit/3e4eaaf47f58719375b488b2a896366482f1e53c))
+
+### :memo: Documentation
+
+* 🏷️ register 'RFC - Request For Comments' label ([f7a2591](https://codeberg.org/goern/forgejo-mcp/commit/f7a2591ef13cfd48bef2d04e7a555aa36c54b871)), closes [#0e8a16](https://codeberg.org/goern/forgejo-mcp/issues/0e8a16)
+* 📝 add label-management showboat demo + README index entry ([bc3f3db](https://codeberg.org/goern/forgejo-mcp/commit/bc3f3dbdec5d12014964e275b25f2dd4f6bf5667))
+* 📝 add OpenSpec change for wiki support via direct API ([aa6fd2b](https://codeberg.org/goern/forgejo-mcp/commit/aa6fd2b235b3411ad7fbeb28617ba24aba8a210e)), closes [#32](https://codeberg.org/goern/forgejo-mcp/issues/32)
+* 📝 apply convergence-round refinements to add-wiki-support ([de6229d](https://codeberg.org/goern/forgejo-mcp/commit/de6229d97303eda02cebd3774052278fdbc13f58)), closes [#32](https://codeberg.org/goern/forgejo-mcp/issues/32)
+* 📝 harden add-wiki-support spec via adversarial debate ([62c5424](https://codeberg.org/goern/forgejo-mcp/commit/62c5424c1dcc53e752a119e8d0af0c80a6a07c1c)), closes [#32](https://codeberg.org/goern/forgejo-mcp/issues/32)
+* 📝 mark label-crud tasks done; update README + AGENTS docs ([db1bf44](https://codeberg.org/goern/forgejo-mcp/commit/db1bf441a5f9112f25c2ab163b50d96c4619b483)), closes [#190](https://codeberg.org/goern/forgejo-mcp/issues/190)
+* 📝 OpenSpec change label-crud (label CRUD tools + label resources) ([ca69d3b](https://codeberg.org/goern/forgejo-mcp/commit/ca69d3b196f94a5ccf722b134db74a657c19d206)), closes [#190](https://codeberg.org/goern/forgejo-mcp/issues/190) [#190](https://codeberg.org/goern/forgejo-mcp/issues/190)
+* 📝 third-pass survival check refinements for add-wiki-support ([aad9b36](https://codeberg.org/goern/forgejo-mcp/commit/aad9b361db2607aeb46d5c404466df6d67a8df7a)), closes [#32](https://codeberg.org/goern/forgejo-mcp/issues/32)
+
+### :repeat: Chore
+
+* ✨ add opsx sync/verify commands and update openspec skills ([af66960](https://codeberg.org/goern/forgejo-mcp/commit/af669600a4b2e4ab23101d83a294f07382d9e6eb))
+* 📊 snapshot release download counts ([0ba6b83](https://codeberg.org/goern/forgejo-mcp/commit/0ba6b838bb96a260fc9a56dcd10b89239f9165c4))
+* 📊 snapshot release download counts ([d0e1833](https://codeberg.org/goern/forgejo-mcp/commit/d0e1833615e27ebf24198fc22f97ddf1ace41f1a))
+* 📊 snapshot release download counts ([27b6933](https://codeberg.org/goern/forgejo-mcp/commit/27b6933088be95b3c05857ae0b87a272d77b9923))
+* 📊 snapshot release download counts ([c10b700](https://codeberg.org/goern/forgejo-mcp/commit/c10b700608fa45b4b5c4bd91a43266293d6200b2))
+* 📊 snapshot release download counts ([a0b298c](https://codeberg.org/goern/forgejo-mcp/commit/a0b298cd5f279cf86d872a5e9749f17f66ba48f2))
+* 📊 snapshot release download counts ([d213a97](https://codeberg.org/goern/forgejo-mcp/commit/d213a97f30d5d4e0cc12dd49b9e1330b7776672d))
+* 🔧 automerge non-major container image updates ([9f9dbaf](https://codeberg.org/goern/forgejo-mcp/commit/9f9dbafae247a21fe3bb00f1eee46596e86402af))
+* 🔧 switch to GPL-3.0, update config and dev rules ([3e265ea](https://codeberg.org/goern/forgejo-mcp/commit/3e265ea5e953459272c99e305fdc00111eb16cc2))
+* 🔧 update beads issue tracker state ([00221ef](https://codeberg.org/goern/forgejo-mcp/commit/00221efb1ad49c00616df21bf957f37341922b19))
+* **deps:** lock file maintenance ([d44e2b0](https://codeberg.org/goern/forgejo-mcp/commit/d44e2b0702c98e90e8eac599dbb7c4e09efbdd40))
+* **deps:** update quay.io/hummingbird/core-runtime:2.42 docker digest to a71de5c ([9eff781](https://codeberg.org/goern/forgejo-mcp/commit/9eff781d1866b053ac0865e52d43c0970ca33497))
+* **deps:** update quay.io/hummingbird/go docker tag to v1.26.4 ([eb66d14](https://codeberg.org/goern/forgejo-mcp/commit/eb66d149d9a0729b0e814f78a98b1bec16139086))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 1aaf9b3 ([dfb6ee3](https://codeberg.org/goern/forgejo-mcp/commit/dfb6ee37f63270afd052806485129d297c032213))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 218c841 ([ff9786e](https://codeberg.org/goern/forgejo-mcp/commit/ff9786edd6b24c8b3f5a2aba742a7fb6bdfd7a6b))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 3828e50 ([73e4587](https://codeberg.org/goern/forgejo-mcp/commit/73e4587d012e55af601e964c8f953400c25b149b))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 4333774 ([801ecbc](https://codeberg.org/goern/forgejo-mcp/commit/801ecbc98ac007a5fec8d8912171dd3154fdbe91))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to 5f0d472 ([1ece055](https://codeberg.org/goern/forgejo-mcp/commit/1ece055b86f25379247ebd77a4a0ca422278bce8))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to b3a5ba1 ([1e3e805](https://codeberg.org/goern/forgejo-mcp/commit/1e3e80530419dea121ae5226c5edd36720f62bef))
+* **deps:** update quay.io/hummingbird/go:1.26.4-builder docker digest to cdef296 ([6aaea12](https://codeberg.org/goern/forgejo-mcp/commit/6aaea1269047e214dee9b350ee7d8bb67a6e5f6f))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 1aaf9b3 ([366ffed](https://codeberg.org/goern/forgejo-mcp/commit/366ffed351d61faacd65c57d19bd3c8ccbe81886))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 218c841 ([e7eb2d1](https://codeberg.org/goern/forgejo-mcp/commit/e7eb2d17af596083c95c00022769154a13ab0b2f))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 3e54930 ([9938dc3](https://codeberg.org/goern/forgejo-mcp/commit/9938dc348a943f35b73700e054a581dee79b4a97))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 4333774 ([5861913](https://codeberg.org/goern/forgejo-mcp/commit/5861913b167d64c1dd7058b4fdef733b78f7ad61))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to b312927 ([68d38d7](https://codeberg.org/goern/forgejo-mcp/commit/68d38d7b7e2d83d97a2ea3aac66d3c1ef485c433))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to b3a5ba1 ([bec9422](https://codeberg.org/goern/forgejo-mcp/commit/bec9422abea705363dd0627fd46ce54f4017f6d4))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to cdef296 ([9cffae6](https://codeberg.org/goern/forgejo-mcp/commit/9cffae6f390b110c98eba5bcad201e47b28230c9))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to dd39528 ([539d7af](https://codeberg.org/goern/forgejo-mcp/commit/539d7af64c55f59726278fe4d2cd712781a21dca))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to f7764ee ([71b14f0](https://codeberg.org/goern/forgejo-mcp/commit/71b14f0ae0812c98f8f65e6dde25c021a2b6cd1e))
+
+## [2.28.0](https://codeberg.org/goern/forgejo-mcp/compare/v2.27.0...v2.28.0) (2026-06-02)
+
+### :sparkles: Features
+
+* ✨ branch protection edit — push/merge/approvals whitelists ([3259301](https://codeberg.org/goern/forgejo-mcp/commit/3259301669c5219363418ba3beb88b8097b8d948))
+
+### :bug: Fixes
+
+* 🐛 push image version tag directly, never delete a staging tag ([748de51](https://codeberg.org/goern/forgejo-mcp/commit/748de5102d71ab196cf34c3a40b9cda6dbca8e80))
+
+### :repeat: CI
+
+* 🚀 track-downloads pushes via PR + auto-merge (main is protected) ([ffbc8d8](https://codeberg.org/goern/forgejo-mcp/commit/ffbc8d82964022aa830fe7937a1ec1b085c0378b))
+* 🚀 track-downloads schedules auto-merge when checks are required ([e5ffd8e](https://codeberg.org/goern/forgejo-mcp/commit/e5ffd8e8dfbd289e265b712ba37f0f6198e04fef)), closes [#249](https://codeberg.org/goern/forgejo-mcp/issues/249)
+
+### :repeat: Chore
+
+* 📊 snapshot release download counts ([2e3bd30](https://codeberg.org/goern/forgejo-mcp/commit/2e3bd30bc7a0068e3786fa76913a323d7e1b7a35))
+
+## [2.27.0](https://codeberg.org/goern/forgejo-mcp/compare/v2.26.0...v2.27.0) (2026-06-02)
+
+### :sparkles: Features
+
+* ✨ branch protection management — CRUD tools + forgejo:// resources (uc6) ([0826172](https://codeberg.org/goern/forgejo-mcp/commit/0826172c239b154bacdb77dce6550387295c3927)), closes [#195](https://codeberg.org/goern/forgejo-mcp/issues/195)
+* ✨ branch protection management — CRUD tools + forgejo:// resources (uc6) ([#196](https://codeberg.org/goern/forgejo-mcp/issues/196)) ([70765bc](https://codeberg.org/goern/forgejo-mcp/commit/70765bcfdfc9944e82f93451ff8f9e5a9a2cd681))
+* ✨ build and publish signed OCI image on tag release ([bdfd968](https://codeberg.org/goern/forgejo-mcp/commit/bdfd968f7360df1d8ed5a2d1d4003d3a36aad3b4))
+* 📊 daily release-download tracking + Chart.js dashboard ([c6bdcfa](https://codeberg.org/goern/forgejo-mcp/commit/c6bdcfadb39e57d9bd5dd20aaa6dc223589a60c9))
+
+### :bug: Fixes
+
+* 🐛 avoid SIGPIPE (exit 141) capturing buildah image id ([e1092ce](https://codeberg.org/goern/forgejo-mcp/commit/e1092cec492d1b53268f6487f314741f65140de9))
+* 🐛 Forgejo push auth — token as userinfo, not x-access-token ([9df82c8](https://codeberg.org/goern/forgejo-mcp/commit/9df82c8134fbb3f48233f5c5576daddb6190c575))
+* 🐛 serialize build-image after goreleaser to prevent PVC contention ([5dc1a18](https://codeberg.org/goern/forgejo-mcp/commit/5dc1a18fe476966e4cf2fe5c1ea1ffb1643a8fbb))
+* 🐛 skip :latest image promotion for pre-release tags ([596527e](https://codeberg.org/goern/forgejo-mcp/commit/596527e601cb9241ec161b05cb0d08282cd9e93e))
+* 💚 POSIX sh for runner — no bash in pod image (shell: sh, drop pipefail/herestrings) ([976b245](https://codeberg.org/goern/forgejo-mcp/commit/976b24549df5e0f8545d3c41ba7456094fc8405d))
+* 💚 respect XDG/HOME — writable dir for git config on read-only pod FS ([b83fcde](https://codeberg.org/goern/forgejo-mcp/commit/b83fcde85d6b19a60abc58aff511d8bc30d521fd))
+* 💚 run in own pod image — drop container:, manual clone, distro-agnostic deps ([16a7000](https://codeberg.org/goern/forgejo-mcp/commit/16a7000932e1bad52eb8c300002707e258bd80a3))
+* 💚 run track-downloads on codeberg-runner-openshift (docker label unavailable) ([d1b0f79](https://codeberg.org/goern/forgejo-mcp/commit/d1b0f798c3a4ee40d0c84f145b4b9f1eabd5c255))
+* 💚 use ubuntu-latest runner label ([781c32f](https://codeberg.org/goern/forgejo-mcp/commit/781c32f7ca92832f375b174ff3a45ad3912a1cf8))
+* 📝 point README artifact-key fetch at renamed cosign-signing-key-artifacts.pub ([c0f6595](https://codeberg.org/goern/forgejo-mcp/commit/c0f6595aa5ee66ae0bfd8fcc0150f732b1fc2193))
+* 📝 point README artifact-key fetch at renamed cosign-signing-key-artifacts.pub ([#194](https://codeberg.org/goern/forgejo-mcp/issues/194)) ([2c84eed](https://codeberg.org/goern/forgejo-mcp/commit/2c84eed0bea213734c043f944b550a2c7ec8dd5f))
+* 🔒️ reject bare tokens in stateless HTTP auth ([63e1624](https://codeberg.org/goern/forgejo-mcp/commit/63e16242a3b634c5320afbaef2dd6625c7cfdb39))
+* 🔒️ resolve goern push token for cosign in image sign + SBOM tasks ([2a0db63](https://codeberg.org/goern/forgejo-mcp/commit/2a0db63027c7c9f95fa9ce9aed2d69b9127aca06))
+* 🔒️ sign SBOM via cosign attest (replace deprecated attach sbom) ([560e375](https://codeberg.org/goern/forgejo-mcp/commit/560e37523512e79b6658ddec50a5128f5bf0931c)), closes [sigstore/cosign#2755](https://codeberg.org/sigstore/cosign/issues/2755)
+* 🔥 remove ephemeral :build-tmp tag after promotion ([f026f8c](https://codeberg.org/goern/forgejo-mcp/commit/f026f8c30ff575ab654ab532e482fcf9f87c1691))
+
+### :memo: Documentation
+
+* ✏️ stamp showboat demo provenance with PR [#193](https://codeberg.org/goern/forgejo-mcp/issues/193) ([120b0f0](https://codeberg.org/goern/forgejo-mcp/commit/120b0f0e6fd6b02bf7529bff51283f9327689677))
+* 📝 archive branch-protection-management + co-locate demo (uc6) ([88cd866](https://codeberg.org/goern/forgejo-mcp/commit/88cd866d0f8be50241ef9ecb3c56b4d058b77afd))
+* 📝 archive branch-protection-management + co-locate demo (uc6) ([#197](https://codeberg.org/goern/forgejo-mcp/issues/197)) ([0fbfe56](https://codeberg.org/goern/forgejo-mcp/commit/0fbfe567ccdf2b40b65616170af7928e79b1e5d9))
+* 📝 archive signed-sbom-attestation + showboat demo (release-tools-image) ([6311de0](https://codeberg.org/goern/forgejo-mcp/commit/6311de072196fcf43193cf57ce15e70585d49665)), closes [#189](https://codeberg.org/goern/forgejo-mcp/issues/189)
+* 📝 archive signed-sbom-attestation + showboat demo (release-tools-image) ([#193](https://codeberg.org/goern/forgejo-mcp/issues/193)) ([e5edfe6](https://codeberg.org/goern/forgejo-mcp/commit/e5edfe6719439e7c3c587cf399691fc19098ae2d))
+* 📝 archive stateless-http-auth change, sync spec ([f107ca3](https://codeberg.org/goern/forgejo-mcp/commit/f107ca364aab54dd8d8817e3e52a19fd4fb22efa))
+* 📝 openspec change — branch protection management (branch-protection capability) ([6312bd2](https://codeberg.org/goern/forgejo-mcp/commit/6312bd2775700cfc035b2361f0fff524c71e23a4))
+* 📝 openspec change — branch protection management (branch-protection capability) ([#195](https://codeberg.org/goern/forgejo-mcp/issues/195)) ([1b994fb](https://codeberg.org/goern/forgejo-mcp/commit/1b994fbe667d90326aaa0e9b1b03a8797a7af2ca))
+* 📝 openspec change — signed SBOM attestation (release-tools-image) ([5207bd9](https://codeberg.org/goern/forgejo-mcp/commit/5207bd9282ab3e57dad61cddb219ca326320354a)), closes [sigstore/cosign#2755](https://codeberg.org/sigstore/cosign/issues/2755)
+* 📝 openspec change — signed SBOM attestation (release-tools-image) ([#189](https://codeberg.org/goern/forgejo-mcp/issues/189)) ([7b85ba4](https://codeberg.org/goern/forgejo-mcp/commit/7b85ba42f43d715ae219b89ff446bf1cb90b141a))
+* 📝 retarget showboat skill from spellkave to forgejo-mcp ([1e017ef](https://codeberg.org/goern/forgejo-mcp/commit/1e017ef2609cdb23d1d524d8d32e0ec580174c65))
+* 📝 showboat demo for branch protection (uc6) — token-free ([3e5dad4](https://codeberg.org/goern/forgejo-mcp/commit/3e5dad455ed4d5a6768c7fa5628766cc65b9d8c2))
+
+### :zap: Refactor
+
+* ♻️ hardcode repo+branch in push, drop GITHUB_* runner vars ([2770e79](https://codeberg.org/goern/forgejo-mcp/commit/2770e79b98afe0563762cb789f4b2e9802172281))
+
+### :repeat: CI
+
+* ⏭️ skip on-pull-request pipeline for docs-only PRs ([#180](https://codeberg.org/goern/forgejo-mcp/issues/180)) ([03e58ea](https://codeberg.org/goern/forgejo-mcp/commit/03e58ea45f86c53aee2d09ef456efe4501b671ec))
+* 🚀 enforce check-demos in PaC and pre-commit ([cb6f657](https://codeberg.org/goern/forgejo-mcp/commit/cb6f6576443c9fa3f1be4972e7dee7b1d061a77c))
+* 🚀 track-downloads pushes via PR + auto-merge (main is protected) ([b36d097](https://codeberg.org/goern/forgejo-mcp/commit/b36d097dd4db5b7f660a5d131598020e919c4a74))
+
+### :repeat: Chore
+
+* 📊 snapshot release download counts ([ef6db22](https://codeberg.org/goern/forgejo-mcp/commit/ef6db2257504c377fa87a41697fb02726a7f3be7))
+* 📊 snapshot release download counts ([01e29f1](https://codeberg.org/goern/forgejo-mcp/commit/01e29f12792fecc34f951ea0cae20e643535467f))
+* 🔖 close bead forgejo-mcp-5zy (download tracking shipped) ([0df01c2](https://codeberg.org/goern/forgejo-mcp/commit/0df01c2797aaeaa9a9205f162580071a2785c6d0))
+* 🔖 sync beads jsonl ([da794b0](https://codeberg.org/goern/forgejo-mcp/commit/da794b0942da8def1b8cda7917fdb28da333b3e8))
+* 🔖 track bead forgejo-mcp-3ph for wiki OpenSpec ([f6596bf](https://codeberg.org/goern/forgejo-mcp/commit/f6596bfbabdfd42573831da9d46ef115ce6ad78b))
+* 🔖 track bead forgejo-mcp-5zy (release download analytics) ([7c9c182](https://codeberg.org/goern/forgejo-mcp/commit/7c9c182f03359b150b4c21287f93528759f6fb5d))
+* 🔖 track bead forgejo-mcp-dn0 (OCI image release pipeline) ([33e4eba](https://codeberg.org/goern/forgejo-mcp/commit/33e4eba871324a7a951b54a63664c7e69e670564))
+* 🔖 track bead forgejo-mcp-fd6 (label tools + resource templates) ([03633b3](https://codeberg.org/goern/forgejo-mcp/commit/03633b38016327d416b64489045ea71f5cda5951))
+* 🔧 add bead forgejo-mcp-8if (merge [#185](https://codeberg.org/goern/forgejo-mcp/issues/185), finish smoke tests, archive) ([0008cb3](https://codeberg.org/goern/forgejo-mcp/commit/0008cb331181fdcda1a7a18ec461bbbe9a78d78f))
+* 🔧 add make check-demos target ([4bae972](https://codeberg.org/goern/forgejo-mcp/commit/4bae9727c1540d4f5e96b89c3cb2e1e8a2618e32))
+* 🔧 add openspec verify-change and sync-specs skills ([8614964](https://codeberg.org/goern/forgejo-mcp/commit/861496497a174f9afa8e789aa3bb5d729920e17e))
+* 🔧 add OWNERS for Pipelines as Code CI authorization ([f268f8d](https://codeberg.org/goern/forgejo-mcp/commit/f268f8daad2420090da12f53d2102a116eb652b4)), closes [#178](https://codeberg.org/goern/forgejo-mcp/issues/178)
+* 🔧 add showboat skill (spec-linked demo artifact convention) ([890c1ec](https://codeberg.org/goern/forgejo-mcp/commit/890c1ec8a0aa96b6f502d838f9b3b6e517da18d6))
+* 🔧 add verify-and-journal wrapper script for OpenSpec SQI ([a900db0](https://codeberg.org/goern/forgejo-mcp/commit/a900db049df1933fdf38901a7bcf5cbba9cdcee6))
+* 🔧 close forgejo-mcp-dn0 (OCI image publish) ([7d51b76](https://codeberg.org/goern/forgejo-mcp/commit/7d51b76408caefce363896d456f3bd1a29370b1b))
+* 🔧 close forgejo-mcp-o5b (:latest gating) ([6f9cc57](https://codeberg.org/goern/forgejo-mcp/commit/6f9cc577d9eda7b37fba80ab7b0a94c92c02c1e7))
+* 🔧 prefix all .tekton PipelineRun names with forgejo-mcp- ([b12dd07](https://codeberg.org/goern/forgejo-mcp/commit/b12dd07410a9ad54ec2d0f9742c477b7c78801bd))
+* 🔧 track follow-up issues for image latest-tag + SBOM attest ([a0e7ab3](https://codeberg.org/goern/forgejo-mcp/commit/a0e7ab3d554b95ce6465553399dc885d8048fb20))
+* 🔧 wire up just check-demos anchored-demo checker ([15cd115](https://codeberg.org/goern/forgejo-mcp/commit/15cd1153e3b49e20d316ed4b942c5dc65fcae02f))
+* 🗂️ bd claim 0zl (README artifact-key rename) ([78ab25b](https://codeberg.org/goern/forgejo-mcp/commit/78ab25b6424684df08821159b9f59538798b8e66))
+* 🗂️ bd close 0zl (merged [#194](https://codeberg.org/goern/forgejo-mcp/issues/194), README artifact-key fixed) ([d5d84cb](https://codeberg.org/goern/forgejo-mcp/commit/d5d84cbe89dcad1e4e000e57e4aa1fe4a051798a))
+* 🗂️ bd close 3y1 (merged [#193](https://codeberg.org/goern/forgejo-mcp/issues/193), signed-sbom-attestation archived) ([8078ce5](https://codeberg.org/goern/forgejo-mcp/commit/8078ce5d00bf506cf2ce793adb0a0255c299019d))
+* 🗂️ bd close aa6 (cosign attest migration) + file 3y1 spec follow-up ([fd7fdd5](https://codeberg.org/goern/forgejo-mcp/commit/fd7fdd5d258f63c017b82885be996c8cc81de2a1))
+* 🗂️ bd close fd6 (label CRUD issue [#190](https://codeberg.org/goern/forgejo-mcp/issues/190) prepared) ([0e6b5c6](https://codeberg.org/goern/forgejo-mcp/commit/0e6b5c6b433b946e46d198ca9d7714625e2309e5))
+* 🗂️ bd close k5f (extend [#136](https://codeberg.org/goern/forgejo-mcp/issues/136) scope to webhook resource-templates) ([86d95da](https://codeberg.org/goern/forgejo-mcp/commit/86d95da7c50c58256b0171a3553c112d51a6b965))
+* 🗂️ bd close uc6 (branch protection shipped [#195](https://codeberg.org/goern/forgejo-mcp/issues/195)/[#196](https://codeberg.org/goern/forgejo-mcp/issues/196)/[#197](https://codeberg.org/goern/forgejo-mcp/issues/197)) ([313e1cb](https://codeberg.org/goern/forgejo-mcp/commit/313e1cb6011d2bc42c41ccd4183a8a6de5cccb9b))
+* 🗂️ bd file 773 (label-crud openspec impl, PR [#192](https://codeberg.org/goern/forgejo-mcp/issues/192)) ([dedc5b5](https://codeberg.org/goern/forgejo-mcp/commit/dedc5b5507791470a0790dce511d6c21a9812e6c))
+* 🗂️ bd file tcy (CLI resource-read parity, Codeberg [#191](https://codeberg.org/goern/forgejo-mcp/issues/191)) ([5a5d921](https://codeberg.org/goern/forgejo-mcp/commit/5a5d921cab9337e5848edd4bf39fa1ba145ec186))
+* 🗂️ bd update 3y1 (signed-sbom archived; file 0zl README §4 key-rename follow-up) ([8989dd4](https://codeberg.org/goern/forgejo-mcp/commit/8989dd4ff3c5baa1c167f002790d4c5a5e0d211d))
+* 🗂️ bd update 773 (label-crud debate outcome: delete_mode enum, repo-prefixed names, org URI) ([7b2a16e](https://codeberg.org/goern/forgejo-mcp/commit/7b2a16e151320b9c54cef24e9345e4c9dab0f697))
+* 🗂️ bd update 773 (label-crud scope: org CRUD + safe delete) ([caa1708](https://codeberg.org/goern/forgejo-mcp/commit/caa170805831c77e5179dd9e729f04e132126a1b))
+* 🗂️ bd update uc6 (branch-protection openspec proposed) ([05731b0](https://codeberg.org/goern/forgejo-mcp/commit/05731b0b066e895f5affc18f775ad8a941de2fde))
+* 🗂️ track PR [#189](https://codeberg.org/goern/forgejo-mcp/issues/189) on bd-3y1 (signed SBOM openspec change) ([7234a08](https://codeberg.org/goern/forgejo-mcp/commit/7234a081db30ac4f126c6850789b7199fa1ada2d))
+* 🗃️ sync beads state (close vbz, add hxv) ([daf834b](https://codeberg.org/goern/forgejo-mcp/commit/daf834b392336466b22bbb8ac4ac668b1af48dd9))
+* **deps:** lock file maintenance ([d5f0e1d](https://codeberg.org/goern/forgejo-mcp/commit/d5f0e1d7fad395bed3ff93ea574321f17303f294))
+* **deps:** update quay.io/hummingbird/go:1.26.3-builder docker digest to 8701cf6 ([a7b46f7](https://codeberg.org/goern/forgejo-mcp/commit/a7b46f7cb8a782066627d52fb41063ac2979d26c))
+* **deps:** update quay.io/hummingbird/go:1.26.3-builder docker digest to 9523912 ([6ffa142](https://codeberg.org/goern/forgejo-mcp/commit/6ffa142c635f441bf6d21ea321b96c575a0a8f82))
+* **deps:** update registry.access.redhat.com/hi/go:1.26.3-builder docker digest to ca7aa43 ([874e9a4](https://codeberg.org/goern/forgejo-mcp/commit/874e9a47d24fbd409162ee97de61d648bc6fa31e))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 8701cf6 ([247d64f](https://codeberg.org/goern/forgejo-mcp/commit/247d64fde285e96a3f0ced6e72228b332c14efd5))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to 9523912 ([7279457](https://codeberg.org/goern/forgejo-mcp/commit/7279457d4f1f2c676130b684c5bf327b8289108e))
+* **deps:** update registry.access.redhat.com/hi/go:latest-builder docker digest to ca7aa43 ([004a28c](https://codeberg.org/goern/forgejo-mcp/commit/004a28c849a38a471b2ac042b9ddb329ed1ef494))
+* migrated to a project of it's own: https://codeberg.org/goern/beads-tv ([f61e858](https://codeberg.org/goern/forgejo-mcp/commit/f61e8588668e720beb3f0dfc01069699c5c9d352))
+* **release:** 2.27.0-alpha.1 ([3914fbe](https://codeberg.org/goern/forgejo-mcp/commit/3914fbe20a9fd124f956e1274fb447b0c9e56f3a))
+
 ## [2.27.0-alpha.1](https://codeberg.org/goern/forgejo-mcp/compare/v2.26.0...v2.27.0-alpha.1) (2026-06-01)
 
 ### :sparkles: Features
@@ -114,6 +845,8 @@
 
 ### Added
 
+- Six wiki tools for page CRUD, bounded reads and revision history, plus the
+  `forgejo://repo/{owner}/{repo}/wiki/{pageName}` resource template.
 - MCP resource templates: 7 URI-addressable read surfaces (`forgejo://owner`, `forgejo://repo`, `forgejo://repo/.../commit`, `.../commit/.../status`, `.../issue`, `.../{kind}/.../comment`, `.../pr`). Coexists with the existing tool surface — no tool removed. Embedded lists capped at 30 items with truncation sentinel.
 
 ## [2.25.1](https://codeberg.org/goern/forgejo-mcp/compare/v2.25.0...v2.25.1) (2026-05-26)

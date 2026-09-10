@@ -6,20 +6,23 @@ import (
 	"net/http"
 	"strings"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/actions"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/attachment"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/issue"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/org"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/pull"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/release"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/repo"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/search"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/tracking"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/user"
-	"codeberg.org/goern/forgejo-mcp/v2/operation/version"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/flag"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/actions"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/attachment"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/branchprotection"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/hook"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/issue"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/org"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/pull"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/release"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/repo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/search"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/tracking"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/user"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/version"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/wiki"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/flag"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
 
 	"github.com/mark3labs/mcp-go/server"
 )
@@ -27,6 +30,60 @@ import (
 var (
 	mcpServer *server.MCPServer
 )
+
+// streamableHTTPEndpointPath is the library's own default. It is named here
+// because the transport is mounted on a mux at this path rather than served as
+// the root handler.
+const streamableHTTPEndpointPath = "/mcp"
+
+// requestTokenContextFunc lifts a per-request credential out of the
+// Authorization header and into the context the tool handlers see.
+func requestTokenContextFunc(ctx context.Context, r *http.Request) context.Context {
+	if token := extractToken(r.Header.Get("Authorization")); token != "" {
+		return forgejo.WithToken(ctx, token)
+	}
+	return ctx
+}
+
+// disableLibraryHostCheck reports whether the library's own loopback protection
+// should be switched off.
+//
+// When the operator declares an explicit allow-list, this server's middleware
+// owns the Host policy and is stricter than the library's, which accepts any
+// loopback name. Leaving both on means a request arriving over loopback with a
+// declared external name is refused by the library after our check has already
+// accepted it — two policies disagreeing about one header. With no declared
+// list the library's protection stays on as written.
+func disableLibraryHostCheck() bool { return len(flag.AllowedHosts) > 0 }
+
+// newSSEHandler builds the SSE transport exactly as Run does.
+//
+// It exists so the conformance tests drive the real construction — the option
+// set, the context function and the mount — rather than a copy of it that can
+// drift. A test that builds its own handler proves nothing about this one.
+func newSSEHandler(s *server.MCPServer) http.Handler {
+	opts := []server.SSEOption{server.WithSSEContextFunc(requestTokenContextFunc)}
+	if disableLibraryHostCheck() {
+		opts = append(opts, server.WithSSEDisableLocalhostProtection(true))
+	}
+	return server.NewSSEServer(s, opts...)
+}
+
+// newStreamableHTTPHandler builds the streamable HTTP transport exactly as Run
+// does, mounted on a mux at its endpoint path. Serving the transport as the
+// root handler instead would make it answer on every path.
+func newStreamableHTTPHandler(s *server.MCPServer) http.Handler {
+	opts := []server.StreamableHTTPOption{
+		server.WithHTTPContextFunc(requestTokenContextFunc),
+		server.WithEndpointPath(streamableHTTPEndpointPath),
+	}
+	if disableLibraryHostCheck() {
+		opts = append(opts, server.WithDisableLocalhostProtection(true))
+	}
+	mux := http.NewServeMux()
+	mux.Handle(streamableHTTPEndpointPath, server.NewStreamableHTTPServer(s, opts...))
+	return mux
+}
 
 func RegisterTool(s *server.MCPServer) {
 	log.Info("Registering MCP tools")
@@ -43,6 +100,9 @@ func RegisterTool(s *server.MCPServer) {
 	RegisterTrackingTool(s)
 	RegisterAttachmentTool(s)
 	RegisterReleaseTool(s)
+	RegisterBranchProtectionTool(s)
+	RegisterHookTool(s)
+	RegisterWikiTool(s)
 
 	log.Info("All MCP tools registered successfully")
 }
@@ -109,6 +169,21 @@ func RegisterReleaseTool(s *server.MCPServer) {
 	log.Debug("Registered release tools")
 }
 
+func RegisterBranchProtectionTool(s *server.MCPServer) {
+	branchprotection.RegisterTool(s)
+	log.Debug("Registered branch protection tools")
+}
+
+func RegisterHookTool(s *server.MCPServer) {
+	hook.RegisterTools(s)
+	log.Debug("Registered webhook tools")
+}
+
+func RegisterWikiTool(s *server.MCPServer) {
+	wiki.RegisterTool(s)
+	log.Debug("Registered wiki tools")
+}
+
 func extractToken(auth string) string {
 	if auth == "" {
 		return ""
@@ -159,20 +234,11 @@ func Run(transport, version string) error {
 		}
 		log.Info("MCP stdio server shutdown")
 	case "sse":
-		sseServer := server.NewSSEServer(mcpServer, server.WithSSEContextFunc(func(ctx context.Context, r *http.Request) context.Context {
-			if token := extractToken(r.Header.Get("Authorization")); token != "" {
-				return forgejo.WithToken(ctx, token)
-			}
-			return ctx
-		}))
+		sseServer := newSSEHandler(mcpServer)
 		log.Info("Starting MCP SSE server",
 			log.IntField("port", flag.SSEPort),
 		)
-		log.Info("MCP SSE server ready for connections",
-			log.IntField("port", flag.SSEPort),
-			log.StringField("endpoint", fmt.Sprintf("http://localhost:%d", flag.SSEPort)),
-		)
-		if err := sseServer.Start(fmt.Sprintf(":%d", flag.SSEPort)); err != nil {
+		if err := serveMCPOverHTTP("sse", sseServer, flag.SSEPort); err != nil {
 			log.Error("Failed to start SSE server",
 				log.IntField("port", flag.SSEPort),
 				log.ErrorField(err),
@@ -181,20 +247,11 @@ func Run(transport, version string) error {
 		}
 		log.Info("MCP SSE server shutdown")
 	case "http":
-		httpServer := server.NewStreamableHTTPServer(mcpServer, server.WithHTTPContextFunc(func(ctx context.Context, r *http.Request) context.Context {
-			if token := extractToken(r.Header.Get("Authorization")); token != "" {
-				return forgejo.WithToken(ctx, token)
-			}
-			return ctx
-		}))
+		httpMux := newStreamableHTTPHandler(mcpServer)
 		log.Info("Starting MCP streamable HTTP server",
 			log.IntField("port", flag.HTTPPort),
 		)
-		log.Info("MCP streamable HTTP server ready for connections",
-			log.IntField("port", flag.HTTPPort),
-			log.StringField("endpoint", fmt.Sprintf("http://localhost:%d", flag.HTTPPort)),
-		)
-		if err := httpServer.Start(fmt.Sprintf(":%d", flag.HTTPPort)); err != nil {
+		if err := serveMCPOverHTTP("http", httpMux, flag.HTTPPort); err != nil {
 			log.Error("Failed to start streamable HTTP server",
 				log.IntField("port", flag.HTTPPort),
 				log.ErrorField(err),
@@ -219,11 +276,35 @@ func testConnection() error {
 func RegisterCoreResources(s *server.MCPServer) {
 	RegisterCommitResource(s)
 	RegisterIssueResources(s)
+	RegisterLabelResources(s)
 	RegisterOwnerResource(s)
 	RegisterPullResources(s)
 	RegisterRepoResource(s)
 	RegisterStatusResource(s)
+	RegisterBranchProtectionResources(s)
+	RegisterHookResources(s)
+	RegisterWikiResource(s)
 	log.Debug("Registered core resource templates")
+}
+
+func RegisterWikiResource(s *server.MCPServer) {
+	wiki.RegisterWikiResource(s)
+	log.Debug("Registered wiki resource template")
+}
+
+func RegisterLabelResources(s *server.MCPServer) {
+	issue.RegisterLabelResources(s)
+	log.Debug("Registered label resource templates")
+}
+
+func RegisterBranchProtectionResources(s *server.MCPServer) {
+	branchprotection.RegisterResource(s)
+	log.Debug("Registered branch protection resource templates")
+}
+
+func RegisterHookResources(s *server.MCPServer) {
+	hook.RegisterResources(s)
+	log.Debug("Registered webhook resource templates")
 }
 
 func RegisterPullResources(s *server.MCPServer) {

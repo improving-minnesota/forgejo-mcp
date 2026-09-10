@@ -10,8 +10,8 @@ import (
 	"sort"
 	"strings"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation"
-	flagPkg "codeberg.org/goern/forgejo-mcp/v2/pkg/flag"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation"
+	flagPkg "git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/flag"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -55,6 +55,9 @@ func registerToolsWithDomains(s *server.MCPServer) {
 		{"tracking", operation.RegisterTrackingTool},
 		{"attachment", operation.RegisterAttachmentTool},
 		{"release", operation.RegisterReleaseTool},
+		{"branch-protection", operation.RegisterBranchProtectionTool},
+		{"webhook", operation.RegisterHookTool},
+		{"wiki", operation.RegisterWikiTool},
 	}
 
 	for _, d := range domains {

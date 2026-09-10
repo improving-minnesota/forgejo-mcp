@@ -1,6 +1,6 @@
 # Issue & Comment Attachments — Implementation Plan
 
-**Issue**: [#106](https://codeberg.org/goern/forgejo-mcp/issues/106)
+**Issue**: [#106](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/106)
 **Branch**: `feature/issue-attachments` *(suggested)*
 
 ## Summary
@@ -65,21 +65,26 @@ Shared parameters (added to `pkg/params/params.go`):
 ```go
 AttachmentID      = "Attachment ID"
 AttachmentName    = "New name for the attachment"
-AttachmentContent = "Base64-encoded file bytes to upload"
-AttachmentFilename = "Filename to associate with the uploaded attachment (e.g. \"requirements.pdf\")"
+AttachmentContent = "Base64-encoded file bytes to upload. Provide exactly one of content or file_path"
+AttachmentFilePath = "Path to a file on the forgejo-mcp host. Relative paths resolve from the server process working directory. Provide exactly one of content or file_path"
+AttachmentFilename = "Filename to associate with the upload. Required with content; optional with file_path (defaults to the path basename)"
 AttachmentMIME    = "MIME type hint for uploaded file (optional; inferred from filename if omitted)"
 ```
 
-The MCP tool accepts base64 bytes only — deliberately no file-path parameter, because the MCP server is often invoked in a context where the agent's filesystem is not the same as the Forgejo server's. A future CLI convenience wrapper may accept `--file path` and encode before dispatch; that is out of scope for the tool definitions themselves.
+The initial MCP tool accepted base64 bytes only because the MCP client's
+filesystem may differ from the server's. The later `attachment-file-path-upload`
+change adds an explicit `file_path` alternative. That path always belongs to
+the host running `forgejo-mcp`; relative paths resolve from the server process
+working directory.
 
 Parameter matrix:
 
-| Tool | `owner` | `repo` | `index` / `comment_id` | `attachment_id` | `name` | `content` | `filename` | `mime_type` |
+| Tool | `owner` | `repo` | `index` / `comment_id` | `attachment_id` | `name` | `content` / `file_path` | `filename` | `mime_type` |
 |------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
 | `list_*_attachments` | ✓ | ✓ | ✓ | | | | | |
 | `get_*_attachment` | ✓ | ✓ | ✓ | ✓ | | | | |
 | `download_*_attachment` | ✓ | ✓ | ✓ | ✓ | | | | |
-| `create_*_attachment` | ✓ | ✓ | ✓ | | | ✓ | ✓ | opt |
+| `create_*_attachment` | ✓ | ✓ | ✓ | | | exactly one | conditional | opt |
 | `edit_*_attachment` | ✓ | ✓ | ✓ | ✓ | ✓ | | | |
 | `delete_*_attachment` | ✓ | ✓ | ✓ | ✓ | | | | |
 
@@ -151,7 +156,7 @@ Constant:
 const MaxInlineDownloadBytes = 1 * 1024 * 1024 // 1 MiB
 ```
 
-Rationale for the 1 MiB cap and the always-include-URL contract: discussion on issue #106 (comments [13701827](https://codeberg.org/goern/forgejo-mcp/issues/106#issuecomment-13701827), [13703888](https://codeberg.org/goern/forgejo-mcp/issues/106#issuecomment-13703888)). For files over the cap, the LLM is expected to fall through to a direct authenticated fetch of `browser_download_url`; this avoids both context-bloat from large base64 payloads and the tmpfile-hygiene / cross-container permission problems that a `save_to_path` parameter would introduce.
+Rationale for the 1 MiB cap and the always-include-URL contract: discussion on issue #106 (comments [13701827](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/106#issuecomment-13701827), [13703888](https://git.b4mad.industries/agentic-forges/forgejo-mcp/issues/106#issuecomment-13703888)). For files over the cap, the LLM is expected to fall through to a direct authenticated fetch of `browser_download_url`; this avoids both context-bloat from large base64 payloads and the tmpfile-hygiene / cross-container permission problems that a `save_to_path` parameter would introduce.
 
 ### Registration
 

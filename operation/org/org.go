@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 
-	"codeberg.org/goern/forgejo-mcp/v2/operation/params"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/forgejo"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/log"
-	"codeberg.org/goern/forgejo-mcp/v2/pkg/to"
 	forgejo_sdk "codeberg.org/mvdkleijn/forgejo-sdk/forgejo/v3"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation/params"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
+	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/to"
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -31,7 +31,7 @@ var (
 		mcp.WithString("name", mcp.Required(), mcp.Description("Organization username")),
 		mcp.WithString("full_name", mcp.Description("Display name")),
 		mcp.WithString("description", mcp.Description(params.Description)),
-		mcp.WithString("website", mcp.Description("Website URL")),
+		mcp.WithString("website", mcp.Description(params.Website)),
 		mcp.WithString("location", mcp.Description("Location")),
 		mcp.WithString("visibility", mcp.Description("Visibility: public, limited, or private")),
 	)
@@ -63,7 +63,7 @@ var (
 		mcp.WithString("org", mcp.Required(), mcp.Description(params.Org)),
 		mcp.WithString("full_name", mcp.Description("Display name")),
 		mcp.WithString("description", mcp.Description(params.Description)),
-		mcp.WithString("website", mcp.Description("Website URL")),
+		mcp.WithString("website", mcp.Description(params.Website)),
 		mcp.WithString("location", mcp.Description("Location")),
 		mcp.WithString("visibility", mcp.Description("Visibility: public, limited, or private")),
 	)
@@ -129,7 +129,7 @@ func CreateOrgFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRes
 	}
 	org, _, err := client.CreateOrg(opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("create org err: %v", err))
+		return to.ErrorResult(fmt.Errorf("create org err: %w", err))
 	}
 	return to.TextResult(org)
 }
@@ -147,7 +147,7 @@ func GetOrgFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult
 	}
 	org, _, err := client.GetOrg(orgName)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get org err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get org err: %w", err))
 	}
 	return to.TextResult(org)
 }
@@ -175,7 +175,7 @@ func ListMyOrgsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRe
 	}
 	orgs, _, err := client.ListMyOrgs(opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list my orgs err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list my orgs err: %w", err))
 	}
 	return to.TextResult(orgs)
 }
@@ -207,7 +207,7 @@ func ListUserOrgsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTool
 	}
 	orgs, _, err := client.ListUserOrgs(user, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list user orgs err: %v", err))
+		return to.ErrorResult(fmt.Errorf("list user orgs err: %w", err))
 	}
 	return to.TextResult(orgs)
 }
@@ -242,13 +242,13 @@ func EditOrgFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResul
 	}
 	_, err = client.EditOrg(orgName, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("edit org err: %v", err))
+		return to.ErrorResult(fmt.Errorf("edit org err: %w", err))
 	}
 
 	// Fetch updated org to return
 	org, _, err := client.GetOrg(orgName)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get updated org err: %v", err))
+		return to.ErrorResult(fmt.Errorf("get updated org err: %w", err))
 	}
 	return to.TextResult(org)
 }
@@ -266,7 +266,7 @@ func DeleteOrgFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolRes
 	}
 	_, err = client.DeleteOrg(orgName)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("delete org err: %v", err))
+		return to.ErrorResult(fmt.Errorf("delete org err: %w", err))
 	}
 	return to.TextResult(fmt.Sprintf("Organization '%s' deleted successfully", orgName))
 }

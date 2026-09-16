@@ -79,6 +79,11 @@ var (
 		mcp.WithNumber("run_id", mcp.Required(), mcp.Description(params.RunID), mcp.Min(1)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(defaultActionJobsLimit), mcp.Min(1), mcp.Max(maxActionJobsLimit)),
+		mcp.WithTitleAnnotation("List action run jobs"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetActionJobLogsTool = mcp.NewTool(
@@ -90,6 +95,11 @@ var (
 		mcp.WithNumber("attempt", mcp.Description(params.Attempt), mcp.Min(1)),
 		mcp.WithNumber("offset", mcp.Description(params.LogOffset), mcp.Min(0)),
 		mcp.WithNumber("max_bytes", mcp.Description(params.LogMaxBytes), mcp.DefaultNumber(defaultActionLogBytes), mcp.Min(1), mcp.Max(maxActionLogBytes)),
+		mcp.WithTitleAnnotation("Get action job logs"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

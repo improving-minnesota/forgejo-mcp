@@ -25,6 +25,11 @@ var ListPackageFilesTool = mcp.NewTool(
 	mcp.WithString("version", mcp.Required(), mcp.Description(params.PackageVersion)),
 	mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 	mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(defaultPackagesLimit), mcp.Min(1), mcp.Max(maxPackagesLimit)),
+	mcp.WithTitleAnnotation("List package files"),
+	mcp.WithReadOnlyHintAnnotation(true),
+	mcp.WithDestructiveHintAnnotation(false),
+	mcp.WithIdempotentHintAnnotation(true),
+	mcp.WithOpenWorldHintAnnotation(false),
 )
 
 func ListPackageFilesFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {

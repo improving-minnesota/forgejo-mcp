@@ -93,6 +93,11 @@ var (
 		mcp.WithString("type", mcp.Required(), mcp.Description(params.PackageType)),
 		mcp.WithString("name", mcp.Required(), mcp.Description(params.PackageName)),
 		mcp.WithString("version", mcp.Required(), mcp.Description(params.PackageVersion)),
+		mcp.WithTitleAnnotation("Get package"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeletePackageTool = mcp.NewTool(
@@ -102,6 +107,11 @@ var (
 		mcp.WithString("type", mcp.Required(), mcp.Description(params.PackageType)),
 		mcp.WithString("name", mcp.Required(), mcp.Description(params.PackageName)),
 		mcp.WithString("version", mcp.Required(), mcp.Description(params.PackageVersion)),
+		mcp.WithTitleAnnotation("Delete package"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

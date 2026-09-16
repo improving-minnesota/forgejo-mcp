@@ -65,6 +65,11 @@ var (
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(20)),
 		mcp.WithString("state", mcp.Description(params.ReleaseState), mcp.DefaultString(stateAll)),
+		mcp.WithTitleAnnotation("List releases"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetReleaseByIDTool = mcp.NewTool(
@@ -73,6 +78,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("release_id", mcp.Required(), mcp.Description(params.ReleaseID)),
+		mcp.WithTitleAnnotation("Get release by ID"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetReleaseByTagTool = mcp.NewTool(
@@ -81,6 +91,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("tag", mcp.Required(), mcp.Description(params.ReleaseTag)),
+		mcp.WithTitleAnnotation("Get release by tag"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetLatestReleaseTool = mcp.NewTool(
@@ -88,6 +103,11 @@ var (
 		mcp.WithDescription("Get the latest non-draft, non-prerelease release."),
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
+		mcp.WithTitleAnnotation("Get latest release"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateReleaseTool = mcp.NewTool(
@@ -101,6 +121,11 @@ var (
 		mcp.WithString("body", mcp.Description(params.Body)),
 		mcp.WithBoolean("draft", mcp.Description(params.ReleaseDraft)),
 		mcp.WithBoolean("prerelease", mcp.Description(params.ReleasePrerelease)),
+		mcp.WithTitleAnnotation("Create release"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditReleaseTool = mcp.NewTool(
@@ -115,6 +140,11 @@ var (
 		mcp.WithString("body", mcp.Description(params.Body)),
 		mcp.WithBoolean("draft", mcp.Description(params.ReleaseDraft)),
 		mcp.WithBoolean("prerelease", mcp.Description(params.ReleasePrerelease)),
+		mcp.WithTitleAnnotation("Edit release"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteReleaseTool = mcp.NewTool(
@@ -123,6 +153,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("release_id", mcp.Required(), mcp.Description(params.ReleaseID)),
+		mcp.WithTitleAnnotation("Delete release"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteReleaseByTagTool = mcp.NewTool(
@@ -131,6 +166,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("tag", mcp.Required(), mcp.Description(params.ReleaseTag)),
+		mcp.WithTitleAnnotation("Delete release by tag"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListReleaseAttachmentsTool = mcp.NewTool(
@@ -141,6 +181,11 @@ var (
 		mcp.WithNumber("release_id", mcp.Required(), mcp.Description(params.ReleaseID)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(20)),
+		mcp.WithTitleAnnotation("List release attachments"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetReleaseAttachmentTool = mcp.NewTool(
@@ -150,6 +195,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("release_id", mcp.Required(), mcp.Description(params.ReleaseID)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
+		mcp.WithTitleAnnotation("Get release attachment"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DownloadReleaseAttachmentTool = mcp.NewTool(
@@ -159,6 +209,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("release_id", mcp.Required(), mcp.Description(params.ReleaseID)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
+		mcp.WithTitleAnnotation("Download release attachment"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateReleaseAttachmentTool = mcp.NewTool(
@@ -171,6 +226,11 @@ var (
 		mcp.WithString("file_path", mcp.Description(params.AttachmentFilePath)),
 		mcp.WithString("filename", mcp.Description(params.AttachmentFilename)),
 		mcp.WithString("mime_type", mcp.Description(params.AttachmentMIME)),
+		mcp.WithTitleAnnotation("Create release attachment"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditReleaseAttachmentTool = mcp.NewTool(
@@ -181,6 +241,11 @@ var (
 		mcp.WithNumber("release_id", mcp.Required(), mcp.Description(params.ReleaseID)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
 		mcp.WithString("name", mcp.Required(), mcp.Description(params.AttachmentName)),
+		mcp.WithTitleAnnotation("Edit release attachment"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteReleaseAttachmentTool = mcp.NewTool(
@@ -190,6 +255,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("release_id", mcp.Required(), mcp.Description(params.ReleaseID)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
+		mcp.WithTitleAnnotation("Delete release attachment"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

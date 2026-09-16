@@ -96,6 +96,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(params.Index)),
+		mcp.WithTitleAnnotation("List issue attachments"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetIssueAttachmentTool = mcp.NewTool(
@@ -105,6 +110,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(params.Index)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
+		mcp.WithTitleAnnotation("Get issue attachment"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DownloadIssueAttachmentTool = mcp.NewTool(
@@ -114,6 +124,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(params.Index)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
+		mcp.WithTitleAnnotation("Download issue attachment"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateIssueAttachmentTool = mcp.NewTool(
@@ -126,6 +141,11 @@ var (
 		mcp.WithString("file_path", mcp.Description(params.AttachmentFilePath)),
 		mcp.WithString("filename", mcp.Description(params.AttachmentFilename)),
 		mcp.WithString("mime_type", mcp.Description(params.AttachmentMIME)),
+		mcp.WithTitleAnnotation("Create issue attachment"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditIssueAttachmentTool = mcp.NewTool(
@@ -136,6 +156,11 @@ var (
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(params.Index)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
 		mcp.WithString("name", mcp.Required(), mcp.Description(params.AttachmentName)),
+		mcp.WithTitleAnnotation("Edit issue attachment"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteIssueAttachmentTool = mcp.NewTool(
@@ -145,6 +170,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(params.Index)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
+		mcp.WithTitleAnnotation("Delete issue attachment"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListCommentAttachmentsTool = mcp.NewTool(
@@ -153,6 +183,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("comment_id", mcp.Required(), mcp.Description(params.CommentID)),
+		mcp.WithTitleAnnotation("List comment attachments"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetCommentAttachmentTool = mcp.NewTool(
@@ -162,6 +197,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("comment_id", mcp.Required(), mcp.Description(params.CommentID)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
+		mcp.WithTitleAnnotation("Get comment attachment"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DownloadCommentAttachmentTool = mcp.NewTool(
@@ -171,6 +211,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("comment_id", mcp.Required(), mcp.Description(params.CommentID)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
+		mcp.WithTitleAnnotation("Download comment attachment"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateCommentAttachmentTool = mcp.NewTool(
@@ -183,6 +228,11 @@ var (
 		mcp.WithString("file_path", mcp.Description(params.AttachmentFilePath)),
 		mcp.WithString("filename", mcp.Description(params.AttachmentFilename)),
 		mcp.WithString("mime_type", mcp.Description(params.AttachmentMIME)),
+		mcp.WithTitleAnnotation("Create comment attachment"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditCommentAttachmentTool = mcp.NewTool(
@@ -193,6 +243,11 @@ var (
 		mcp.WithNumber("comment_id", mcp.Required(), mcp.Description(params.CommentID)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
 		mcp.WithString("name", mcp.Required(), mcp.Description(params.AttachmentName)),
+		mcp.WithTitleAnnotation("Edit comment attachment"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteCommentAttachmentTool = mcp.NewTool(
@@ -202,6 +257,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("comment_id", mcp.Required(), mcp.Description(params.CommentID)),
 		mcp.WithNumber("attachment_id", mcp.Required(), mcp.Description(params.AttachmentID)),
+		mcp.WithTitleAnnotation("Delete comment attachment"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

@@ -35,6 +35,11 @@ var (
 		mcp.WithString("body", mcp.Description(params.ReviewBody)),
 		mcp.WithString("state", mcp.Required(), mcp.Description(params.ReviewState)),
 		mcp.WithString("comments", mcp.Description(params.ReviewComments)),
+		mcp.WithTitleAnnotation("Create pull request review"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	SubmitPullReviewTool = mcp.NewTool(
@@ -46,6 +51,11 @@ var (
 		mcp.WithNumber("id", mcp.Required(), mcp.Description(params.ReviewID)),
 		mcp.WithString("body", mcp.Description(params.ReviewBody)),
 		mcp.WithString("state", mcp.Required(), mcp.Description(params.ReviewState)),
+		mcp.WithTitleAnnotation("Submit pull request review"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DismissPullReviewTool = mcp.NewTool(
@@ -56,6 +66,11 @@ var (
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(params.PRIndex)),
 		mcp.WithNumber("id", mcp.Required(), mcp.Description(params.ReviewID)),
 		mcp.WithString("message", mcp.Required(), mcp.Description(params.DismissMessage)),
+		mcp.WithTitleAnnotation("Dismiss pull request review"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeletePullReviewTool = mcp.NewTool(
@@ -65,6 +80,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(params.PRIndex)),
 		mcp.WithNumber("id", mcp.Required(), mcp.Description(params.ReviewID)),
+		mcp.WithTitleAnnotation("Delete pull request review"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateReviewRequestsTool = mcp.NewTool(
@@ -75,6 +95,11 @@ var (
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(params.PRIndex)),
 		mcp.WithString("reviewers", mcp.Description(params.Reviewers)),
 		mcp.WithString("team_reviewers", mcp.Description(params.TeamReviewers)),
+		mcp.WithTitleAnnotation("Create review requests"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteReviewRequestsTool = mcp.NewTool(
@@ -85,6 +110,11 @@ var (
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(params.PRIndex)),
 		mcp.WithString("reviewers", mcp.Description(params.Reviewers)),
 		mcp.WithString("team_reviewers", mcp.Description(params.TeamReviewers)),
+		mcp.WithTitleAnnotation("Delete review requests"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

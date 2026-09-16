@@ -39,6 +39,11 @@ var (
 		mcp.WithString("license", mcp.Description("License")),
 		mcp.WithString("readme", mcp.Description("README content")),
 		mcp.WithString("default_branch", mcp.Description("Default branch")),
+		mcp.WithTitleAnnotation("Create repository"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ForkRepoTool = mcp.NewTool(
@@ -48,6 +53,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("organization", mcp.Description("Org name")),
 		mcp.WithString("name", mcp.Description("Fork name")),
+		mcp.WithTitleAnnotation("Fork repository"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListMyReposTool = mcp.NewTool(
@@ -55,6 +65,11 @@ var (
 		mcp.WithDescription("List my repos"),
 		mcp.WithNumber("page", mcp.Required(), mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Required(), mcp.Description(params.Limit), mcp.DefaultNumber(100), mcp.Min(1)),
+		mcp.WithTitleAnnotation("List my repositories"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

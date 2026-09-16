@@ -36,6 +36,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("page", mcp.Required(), mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Required(), mcp.Description(params.Limit), mcp.DefaultNumber(100), mcp.Min(1)),
+		mcp.WithTitleAnnotation("List branch protections"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetBranchProtectionTool = mcp.NewTool(
@@ -44,6 +49,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("rule", mcp.Required(), mcp.Description(params.BPRule)),
+		mcp.WithTitleAnnotation("Get branch protection"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateBranchProtectionTool = mcp.NewTool(
@@ -60,6 +70,11 @@ var (
 		mcp.WithBoolean("block_on_outdated_branch", mcp.Description(params.BPBlockOnOutdatedBranch)),
 		mcp.WithBoolean("require_signed_commits", mcp.Description(params.BPRequireSignedCommits)),
 		mcp.WithBoolean("dismiss_stale_approvals", mcp.Description(params.BPDismissStaleApprovals)),
+		mcp.WithTitleAnnotation("Create branch protection"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditBranchProtectionTool = mcp.NewTool(
@@ -81,6 +96,11 @@ var (
 		mcp.WithString("merge_whitelist_usernames", mcp.Description(params.BPMergeWhitelistUsers)),
 		mcp.WithBoolean("enable_approvals_whitelist", mcp.Description(params.BPEnableApprovalsWl)),
 		mcp.WithString("approvals_whitelist_usernames", mcp.Description(params.BPApprovalsWhitelistUsers)),
+		mcp.WithTitleAnnotation("Edit branch protection"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteBranchProtectionTool = mcp.NewTool(
@@ -89,6 +109,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("rule", mcp.Required(), mcp.Description(params.BPRule)),
+		mcp.WithTitleAnnotation("Delete branch protection"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

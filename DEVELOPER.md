@@ -105,6 +105,13 @@ var MyTool = mcp.NewTool(
     mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
     mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
     mcp.WithNumber("limit", mcp.Description("Page size"), mcp.DefaultNumber(20)),
+
+    // Annotations (required — see rubric below)
+    mcp.WithTitleAnnotation("My tool"),
+    mcp.WithReadOnlyHintAnnotation(false),
+    mcp.WithDestructiveHintAnnotation(false),
+    mcp.WithIdempotentHintAnnotation(true),
+    mcp.WithOpenWorldHintAnnotation(false),
 )
 
 // Handler function
@@ -124,6 +131,37 @@ func MyToolFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult
     return to.TextResult(result)
 }
 ```
+
+#### Tool Annotations Are Required
+
+Every `mcp.NewTool()` MUST declare accurate annotations. They are hints, but
+clients act on them: plan mode in ZCode/Claude Code only runs tools marked
+`readOnlyHint=true`. Worse, `mcp-go`'s `NewTool` silently pre-fills
+`readOnlyHint=false, destructiveHint=true` — the spec defaults — so an
+unannotated tool advertises itself as a destructive write.
+
+Classification rubric:
+
+| Class | Hints | Typical tools |
+| ----- | ----- | ------------- |
+| Read-only | `readOnly=true, destructive=false, idempotent=true` | `list_*`, `get_*`, `search_*`, `download_*_attachment`, `check_*` |
+| Mutating | `readOnly=false, destructive=false` | `create_*`, `edit_*`/`update_*`, `add_*`, `remove_*`, `set_*`, `merge_pull_request`, `fork_repo`, `issue_state_change`, stopwatch controls |
+| Destructive | `readOnly=false, destructive=true, idempotent=false` | `delete_*`, `reset_issue_time` |
+
+Rules that cut across the classes:
+
+- `openWorldHint=false` on every tool — all tools target the single
+  configured Forgejo instance.
+- `idempotentHint=true` on a mutating tool only when replaying the same call
+  has no additional effect: in-place edits, label add/remove, mark-as-read,
+  same-state transitions. `false` for creates, comments, uploads, merges, and
+  git-content writes (`create_file`, `update_file`, `update_wiki_page` — a
+  replay can create another commit).
+- Add the tool to the golden lists in
+  [operation/tool_annotations_test.go](operation/tool_annotations_test.go)
+  (class list, plus `wantMutatingIdempotent` if replay-safe). The test fails
+  on an unclassified tool or hints that contradict the class, which keeps the
+  annotation layer honest as tools evolve.
 
 ### Step 3: Register the Tool
 

@@ -33,6 +33,11 @@ var (
 		mcp.WithBoolean("with_metadata", mcp.Description("Return the full ContentsResponse (sha, encoding, links, type, size, base64 content) instead of plain text.")),
 		mcp.WithNumber("start_line", mcp.Description("Optional 1-indexed first line of the slice (inclusive). Defaults to 1 when only end_line is set.")),
 		mcp.WithNumber("end_line", mcp.Description("Optional 1-indexed last line of the slice (inclusive). Defaults to the file's last line when only start_line is set.")),
+		mcp.WithTitleAnnotation("Get file content"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateFileTool = mcp.NewTool(
@@ -45,6 +50,11 @@ var (
 		mcp.WithString("message", mcp.Required(), mcp.Description(params.Message)),
 		mcp.WithString("branch_name", mcp.Required(), mcp.Description(params.BranchName)),
 		mcp.WithString("new_branch_name", mcp.Description(params.NewBranchName)),
+		mcp.WithTitleAnnotation("Create file"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	UpdateFileTool = mcp.NewTool(
@@ -58,6 +68,11 @@ var (
 		mcp.WithString("branch_name", mcp.Required(), mcp.Description(params.BranchName)),
 		mcp.WithString("sha", mcp.Required(), mcp.Description(params.SHA)),
 		mcp.WithString("new_branch_name", mcp.Description(params.NewBranchName)),
+		mcp.WithTitleAnnotation("Update file"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteFileTool = mcp.NewTool(
@@ -70,6 +85,11 @@ var (
 		mcp.WithString("branch_name", mcp.Required(), mcp.Description(params.BranchName)),
 		mcp.WithString("sha", mcp.Required(), mcp.Description(params.SHA)),
 		mcp.WithString("new_branch_name", mcp.Description(params.NewBranchName)),
+		mcp.WithTitleAnnotation("Delete file"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

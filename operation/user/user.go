@@ -21,6 +21,11 @@ var (
 	GetMyUserInfoTool = mcp.NewTool(
 		GetMyUserInfoToolName,
 		mcp.WithDescription("Get user info"),
+		mcp.WithTitleAnnotation("Get my user info"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

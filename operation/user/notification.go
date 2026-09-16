@@ -32,24 +32,44 @@ var (
 		mcp.WithString("before", mcp.Description(params.Before)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(20)),
+		mcp.WithTitleAnnotation("Check notifications"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetNotificationThreadTool = mcp.NewTool(
 		GetNotificationThreadToolName,
 		mcp.WithDescription("Get detailed info on a single notification thread"),
 		mcp.WithNumber("id", mcp.Description("Notification ID"), mcp.Required()),
+		mcp.WithTitleAnnotation("Get notification thread"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	MarkNotificationReadTool = mcp.NewTool(
 		MarkNotificationReadToolName,
 		mcp.WithDescription("Mark a single notification thread as read"),
 		mcp.WithNumber("id", mcp.Description("Notification ID"), mcp.Required()),
+		mcp.WithTitleAnnotation("Mark notification as read"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	MarkAllNotificationsReadTool = mcp.NewTool(
 		MarkAllNotificationsReadToolName,
 		mcp.WithDescription("Acknowledge all notifications"),
 		mcp.WithString("last_read_at", mcp.Description("Optional RFC3339 time")),
+		mcp.WithTitleAnnotation("Mark all notifications as read"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListRepoNotificationsTool = mcp.NewTool(
@@ -62,6 +82,11 @@ var (
 		mcp.WithString("before", mcp.Description(params.Before)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(20)),
+		mcp.WithTitleAnnotation("List repository notifications"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	MarkRepoNotificationsReadTool = mcp.NewTool(
@@ -70,6 +95,11 @@ var (
 		mcp.WithString("owner", mcp.Description("Repository owner"), mcp.Required()),
 		mcp.WithString("repo", mcp.Description("Repository name"), mcp.Required()),
 		mcp.WithString("last_read_at", mcp.Description("Optional RFC3339 time")),
+		mcp.WithTitleAnnotation("Mark repository notifications as read"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

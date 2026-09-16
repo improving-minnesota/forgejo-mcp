@@ -38,6 +38,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("page", mcp.Required(), mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Required(), mcp.Description(params.Limit), mcp.DefaultNumber(30), mcp.Min(1)),
+		mcp.WithTitleAnnotation("List repository hooks"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetRepoHookTool = mcp.NewTool(
@@ -46,6 +51,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("id", mcp.Required(), mcp.Description("Webhook ID")),
+		mcp.WithTitleAnnotation("Get repository hook"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateRepoHookTool = mcp.NewTool(
@@ -61,6 +71,11 @@ var (
 		mcp.WithString("branch_filter", mcp.Description("Branch filter glob (e.g. main, release/*)")),
 		mcp.WithString("events", mcp.Description(`Webhook events (comma-separated, e.g. "push,pull_request")`)),
 		mcp.WithBoolean("active", mcp.Description("Whether the webhook is active (default true)")),
+		mcp.WithTitleAnnotation("Create repository hook"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditRepoHookTool = mcp.NewTool(
@@ -76,6 +91,11 @@ var (
 		mcp.WithString("branch_filter", mcp.Description("Branch filter glob")),
 		mcp.WithString("events", mcp.Description(`Webhook events (comma-separated)`)),
 		mcp.WithBoolean("active", mcp.Description("Whether the webhook is active")),
+		mcp.WithTitleAnnotation("Edit repository hook"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteRepoHookTool = mcp.NewTool(
@@ -84,6 +104,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("id", mcp.Required(), mcp.Description("Webhook ID")),
+		mcp.WithTitleAnnotation("Delete repository hook"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	TestRepoHookTool = mcp.NewTool(
@@ -92,6 +117,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("id", mcp.Required(), mcp.Description("Webhook ID")),
+		mcp.WithTitleAnnotation("Test repository hook"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

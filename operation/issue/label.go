@@ -41,6 +41,11 @@ var (
 		mcp.WithString("name", mcp.Required(), mcp.Description("Label name")),
 		mcp.WithString("color", mcp.Required(), mcp.Description("Label color as 6-digit hex (e.g. #0088ff or 0088ff)")),
 		mcp.WithString("description", mcp.Description("Label description")),
+		mcp.WithTitleAnnotation("Create repository label"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditRepoLabelTool = mcp.NewTool(
@@ -52,6 +57,11 @@ var (
 		mcp.WithString("name", mcp.Description("New label name")),
 		mcp.WithString("color", mcp.Description("New label color as 6-digit hex (e.g. #0088ff or 0088ff)")),
 		mcp.WithString("description", mcp.Description("New label description")),
+		mcp.WithTitleAnnotation("Edit repository label"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteRepoLabelTool = mcp.NewTool(
@@ -61,6 +71,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("id", mcp.Required(), mcp.Description("Label ID")),
 		mcp.WithString("delete_mode", mcp.Description("safe (default): refuse if in use and report count. force: delete unconditionally.")),
+		mcp.WithTitleAnnotation("Delete repository label"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetRepoLabelTool = mcp.NewTool(
@@ -69,6 +84,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("id", mcp.Required(), mcp.Description("Label ID")),
+		mcp.WithTitleAnnotation("Get repository label"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateOrgLabelTool = mcp.NewTool(
@@ -78,6 +98,11 @@ var (
 		mcp.WithString("name", mcp.Required(), mcp.Description("Label name")),
 		mcp.WithString("color", mcp.Required(), mcp.Description("Label color as 6-digit hex (e.g. #0088ff or 0088ff)")),
 		mcp.WithString("description", mcp.Description("Label description")),
+		mcp.WithTitleAnnotation("Create organization label"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditOrgLabelTool = mcp.NewTool(
@@ -88,6 +113,11 @@ var (
 		mcp.WithString("name", mcp.Description("New label name")),
 		mcp.WithString("color", mcp.Description("New label color as 6-digit hex (e.g. #0088ff or 0088ff)")),
 		mcp.WithString("description", mcp.Description("New label description")),
+		mcp.WithTitleAnnotation("Edit organization label"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteOrgLabelTool = mcp.NewTool(
@@ -96,6 +126,11 @@ var (
 		mcp.WithString("org", mcp.Required(), mcp.Description("Organization name")),
 		mcp.WithNumber("id", mcp.Required(), mcp.Description("Label ID")),
 		mcp.WithString("delete_mode", mcp.Description("safe (default): refuse if in use and report count. force: delete unconditionally.")),
+		mcp.WithTitleAnnotation("Delete organization label"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetOrgLabelTool = mcp.NewTool(
@@ -103,6 +138,11 @@ var (
 		mcp.WithDescription("Get a single organization-level label by ID."),
 		mcp.WithString("org", mcp.Required(), mcp.Description("Organization name")),
 		mcp.WithNumber("id", mcp.Required(), mcp.Description("Label ID")),
+		mcp.WithTitleAnnotation("Get organization label"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

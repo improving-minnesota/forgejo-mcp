@@ -26,6 +26,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("ref", mcp.Required(), mcp.Description(params.Ref)),
 		mcp.WithString("path", mcp.Required(), mcp.Description("Directory path within the repository (empty string lists the repository root)")),
+		mcp.WithTitleAnnotation("List repository contents"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetRepoTreeTool = mcp.NewTool(
@@ -37,6 +42,11 @@ var (
 		mcp.WithBoolean("recursive", mcp.Description("Return the complete file tree in one response (subject to server cap); default false returns top-level entries only")),
 		mcp.WithNumber("page", mcp.Required(), mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Required(), mcp.Description(params.Limit), mcp.DefaultNumber(1000), mcp.Min(1)),
+		mcp.WithTitleAnnotation("Get repository tree"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

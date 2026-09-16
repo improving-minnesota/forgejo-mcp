@@ -27,6 +27,11 @@ var (
 		mcp.WithString("keyword", mcp.Description(params.Keyword)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(100)),
+		mcp.WithTitleAnnotation("Search users"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	SearchOrgTeamsTool = mcp.NewTool(
@@ -36,6 +41,11 @@ var (
 		mcp.WithString("keyword", mcp.Description(params.Keyword)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(100)),
+		mcp.WithTitleAnnotation("Search organization teams"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	SearchReposTool = mcp.NewTool(
@@ -46,6 +56,11 @@ var (
 		mcp.WithString("order", mcp.Description(params.Order), mcp.DefaultString("desc")),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(100)),
+		mcp.WithTitleAnnotation("Search repositories"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

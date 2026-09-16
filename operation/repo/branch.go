@@ -27,6 +27,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("branch", mcp.Required(), mcp.Description(params.Branch)),
 		mcp.WithString("old_branch", mcp.Required(), mcp.Description(params.OldBranch)),
+		mcp.WithTitleAnnotation("Create branch"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteBranchTool = mcp.NewTool(
@@ -35,6 +40,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("branch", mcp.Required(), mcp.Description(params.Branch)),
+		mcp.WithTitleAnnotation("Delete branch"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListBranchesTool = mcp.NewTool(
@@ -44,6 +54,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("page", mcp.Required(), mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Required(), mcp.Description(params.Limit), mcp.DefaultNumber(100), mcp.Min(1)),
+		mcp.WithTitleAnnotation("List branches"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

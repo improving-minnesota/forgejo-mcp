@@ -29,6 +29,11 @@ var (
 		mcp.WithString("workflow", mcp.Required(), mcp.Description(params.Workflow)),
 		mcp.WithString("ref", mcp.Required(), mcp.Description(params.Ref)),
 		mcp.WithString("inputs", mcp.Description(params.Inputs)),
+		mcp.WithTitleAnnotation("Dispatch workflow"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

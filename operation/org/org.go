@@ -34,12 +34,22 @@ var (
 		mcp.WithString("website", mcp.Description(params.Website)),
 		mcp.WithString("location", mcp.Description("Location")),
 		mcp.WithString("visibility", mcp.Description("Visibility: public, limited, or private")),
+		mcp.WithTitleAnnotation("Create organization"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	GetOrgTool = mcp.NewTool(
 		GetOrgToolName,
 		mcp.WithDescription("Get organization details"),
 		mcp.WithString("org", mcp.Required(), mcp.Description(params.Org)),
+		mcp.WithTitleAnnotation("Get organization"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListMyOrgsTool = mcp.NewTool(
@@ -47,6 +57,11 @@ var (
 		mcp.WithDescription("List my organizations"),
 		mcp.WithNumber("page", mcp.Required(), mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Required(), mcp.Description(params.Limit), mcp.DefaultNumber(100), mcp.Min(1)),
+		mcp.WithTitleAnnotation("List my organizations"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListUserOrgsTool = mcp.NewTool(
@@ -55,6 +70,11 @@ var (
 		mcp.WithString("user", mcp.Required(), mcp.Description(params.User)),
 		mcp.WithNumber("page", mcp.Required(), mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Required(), mcp.Description(params.Limit), mcp.DefaultNumber(100), mcp.Min(1)),
+		mcp.WithTitleAnnotation("List user organizations"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditOrgTool = mcp.NewTool(
@@ -66,12 +86,22 @@ var (
 		mcp.WithString("website", mcp.Description(params.Website)),
 		mcp.WithString("location", mcp.Description("Location")),
 		mcp.WithString("visibility", mcp.Description("Visibility: public, limited, or private")),
+		mcp.WithTitleAnnotation("Edit organization"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteOrgTool = mcp.NewTool(
 		DeleteOrgToolName,
 		mcp.WithDescription("Delete an organization. WARNING: This is destructive and irreversible — all repos, teams, and data will be permanently removed"),
 		mcp.WithString("org", mcp.Required(), mcp.Description(params.Org)),
+		mcp.WithTitleAnnotation("Delete organization"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

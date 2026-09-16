@@ -23,6 +23,11 @@ var (
 		mcp.WithDescription("Get a single repository by owner and name."),
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
+		mcp.WithTitleAnnotation("Get repository"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	EditRepoTool = mcp.NewTool(
@@ -44,6 +49,11 @@ var (
 		mcp.WithBoolean("has_releases", mcp.Description("Enable releases")),
 		mcp.WithBoolean("has_packages", mcp.Description("Enable packages")),
 		mcp.WithBoolean("has_actions", mcp.Description("Enable Actions")),
+		mcp.WithTitleAnnotation("Edit repository"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

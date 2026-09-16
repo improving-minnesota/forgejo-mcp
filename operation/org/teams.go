@@ -30,6 +30,11 @@ var (
 		mcp.WithString("org", mcp.Required(), mcp.Description(params.Org)),
 		mcp.WithNumber("page", mcp.Required(), mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Required(), mcp.Description(params.Limit), mcp.DefaultNumber(100), mcp.Min(1)),
+		mcp.WithTitleAnnotation("List organization teams"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateOrgTeamTool = mcp.NewTool(
@@ -41,6 +46,11 @@ var (
 		mcp.WithString("permission", mcp.Description("Access level: read, write, or admin (default: read)")),
 		mcp.WithBoolean("can_create_org_repo", mcp.Description("Whether members can create repos in the org")),
 		mcp.WithBoolean("includes_all_repositories", mcp.Description("Whether team has access to all org repos")),
+		mcp.WithTitleAnnotation("Create organization team"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	AddTeamMemberTool = mcp.NewTool(
@@ -48,6 +58,11 @@ var (
 		mcp.WithDescription("Add a user to a team"),
 		mcp.WithNumber("team_id", mcp.Required(), mcp.Description("Team ID")),
 		mcp.WithString("user", mcp.Required(), mcp.Description(params.User)),
+		mcp.WithTitleAnnotation("Add team member"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	RemoveTeamMemberTool = mcp.NewTool(
@@ -55,6 +70,11 @@ var (
 		mcp.WithDescription("Remove a user from a team"),
 		mcp.WithNumber("team_id", mcp.Required(), mcp.Description("Team ID")),
 		mcp.WithString("user", mcp.Required(), mcp.Description(params.User)),
+		mcp.WithTitleAnnotation("Remove team member"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	AddTeamRepoTool = mcp.NewTool(
@@ -63,6 +83,11 @@ var (
 		mcp.WithNumber("team_id", mcp.Required(), mcp.Description("Team ID")),
 		mcp.WithString("org", mcp.Required(), mcp.Description(params.Org)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
+		mcp.WithTitleAnnotation("Add team repository"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	RemoveTeamRepoTool = mcp.NewTool(
@@ -71,6 +96,11 @@ var (
 		mcp.WithNumber("team_id", mcp.Required(), mcp.Description("Team ID")),
 		mcp.WithString("org", mcp.Required(), mcp.Description(params.Org)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
+		mcp.WithTitleAnnotation("Remove team repository"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

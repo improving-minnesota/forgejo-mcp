@@ -32,6 +32,11 @@ var (
 		mcp.WithString("sha", mcp.Required(), mcp.Description("Full 40-character hex commit SHA")),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(defaultCommitStatusesLimit), mcp.Min(1), mcp.Max(maxCommitStatusesLimit)),
+		mcp.WithTitleAnnotation("List commit statuses"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

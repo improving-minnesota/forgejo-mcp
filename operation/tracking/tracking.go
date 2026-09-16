@@ -41,6 +41,11 @@ var (
 		mcp.WithString("before", mcp.Description(params.Before)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(20)),
+		mcp.WithTitleAnnotation("List issue tracked times"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListRepoTrackedTimesTool = mcp.NewTool(
@@ -53,11 +58,21 @@ var (
 		mcp.WithString("user", mcp.Description(params.TimeUserFilter)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(20)),
+		mcp.WithTitleAnnotation("List repository tracked times"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListMyTrackedTimesTool = mcp.NewTool(
 		ListMyTrackedTimesToolName,
 		mcp.WithDescription("List tracked time entries for the authenticated user across all repositories"),
+		mcp.WithTitleAnnotation("List my tracked times"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	AddIssueTimeTool = mcp.NewTool(
@@ -70,6 +85,11 @@ var (
 		mcp.WithString("duration", mcp.Description(params.TimeDuration)),
 		mcp.WithString("created_at", mcp.Description(params.TimeCreatedAt)),
 		mcp.WithString("user_name", mcp.Description(params.TimeUserName)),
+		mcp.WithTitleAnnotation("Add issue tracked time"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ResetIssueTimeTool = mcp.NewTool(
@@ -78,6 +98,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(indexDescIssueOrPR)),
+		mcp.WithTitleAnnotation("Reset issue tracked time"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteIssueTimeEntryTool = mcp.NewTool(
@@ -87,6 +112,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(indexDescIssueOrPR)),
 		mcp.WithNumber("time_id", mcp.Required(), mcp.Description(params.TimeID)),
+		mcp.WithTitleAnnotation("Delete issue time entry"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	StartIssueStopwatchTool = mcp.NewTool(
@@ -95,6 +125,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(indexDescIssueOrPR)),
+		mcp.WithTitleAnnotation("Start issue stopwatch"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	StopIssueStopwatchTool = mcp.NewTool(
@@ -103,6 +138,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(indexDescIssueOrPR)),
+		mcp.WithTitleAnnotation("Stop issue stopwatch"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CancelIssueStopwatchTool = mcp.NewTool(
@@ -111,11 +151,21 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("index", mcp.Required(), mcp.Description(indexDescIssueOrPR)),
+		mcp.WithTitleAnnotation("Cancel issue stopwatch"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListMyStopwatchesTool = mcp.NewTool(
 		ListMyStopwatchesToolName,
 		mcp.WithDescription("List all currently running stopwatches for the authenticated user"),
+		mcp.WithTitleAnnotation("List my stopwatches"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

@@ -20,6 +20,11 @@ var (
 	GetForgejoMCPServerVersionTool = mcp.NewTool(
 		GetForgejoMCPServerVersion,
 		mcp.WithDescription("Get MCP server version"),
+		mcp.WithTitleAnnotation("Get Forgejo MCP server version"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

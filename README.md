@@ -338,6 +338,7 @@ List all my repositories
 | `create_file` | Create a new file |
 | `update_file` | Update an existing file |
 | `delete_file` | Delete a file |
+| `apply_diff_patch` | Apply a textual unified diff using Forgejo's native diff-patch repository endpoint. Resolves the source branch first and performs exactly one native repository mutation. Optional `new_branch_name` applies the patch on a new branch. |
 | **Commits** | |
 | `list_repo_commits` | List commits in a repository |
 | `get_commit_statuses` | List per-context commit statuses for a full 40-character SHA. Bounded by `page` (default 1) + `limit` (default 30, maximum 50); returns `{sha, statuses, page, limit, count, total_count}` — `total_count` is present only when Forgejo reports `X-Total-Count`. Combined aggregate stays on the commit status resource. Not Actions runs (`list_workflow_runs`). |

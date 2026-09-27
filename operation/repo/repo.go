@@ -74,6 +74,7 @@ func RegisterTool(s *server.MCPServer) {
 	s.AddTool(CreateFileTool, CreateFileFn)
 	s.AddTool(UpdateFileTool, UpdateFileFn)
 	s.AddTool(DeleteFileTool, DeleteFileFn)
+	s.AddTool(ApplyDiffPatchTool, ApplyDiffPatchFn)
 
 	// Branch
 	s.AddTool(CreateBranchTool, CreateBranchFn)

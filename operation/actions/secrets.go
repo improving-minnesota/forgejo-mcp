@@ -71,6 +71,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(defaultActionSecretsLimit), mcp.Min(1), mcp.Max(maxActionSecretsLimit)),
+		mcp.WithTitleAnnotation("List repository action secrets"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateOrUpdateRepoActionSecretTool = mcp.NewTool(
@@ -80,6 +85,11 @@ var (
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("secret_name", mcp.Required(), mcp.Description(params.SecretName)),
 		mcp.WithString("data", mcp.Required(), mcp.Description(params.SecretData)),
+		mcp.WithTitleAnnotation("Create or update repository action secret"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteRepoActionSecretTool = mcp.NewTool(
@@ -88,6 +98,11 @@ var (
 		mcp.WithString("owner", mcp.Required(), mcp.Description(params.Owner)),
 		mcp.WithString("repo", mcp.Required(), mcp.Description(params.Repo)),
 		mcp.WithString("secret_name", mcp.Required(), mcp.Description(params.SecretName)),
+		mcp.WithTitleAnnotation("Delete repository action secret"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	ListOrgActionSecretsTool = mcp.NewTool(
@@ -96,6 +111,11 @@ var (
 		mcp.WithString("org", mcp.Required(), mcp.Description(params.Org)),
 		mcp.WithNumber("page", mcp.Description(params.Page), mcp.DefaultNumber(1), mcp.Min(1)),
 		mcp.WithNumber("limit", mcp.Description(params.Limit), mcp.DefaultNumber(defaultActionSecretsLimit), mcp.Min(1), mcp.Max(maxActionSecretsLimit)),
+		mcp.WithTitleAnnotation("List organization action secrets"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithDestructiveHintAnnotation(false),
+		mcp.WithIdempotentHintAnnotation(true),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	CreateOrUpdateOrgActionSecretTool = mcp.NewTool(
@@ -104,6 +124,11 @@ var (
 		mcp.WithString("org", mcp.Required(), mcp.Description(params.Org)),
 		mcp.WithString("secret_name", mcp.Required(), mcp.Description(params.SecretName)),
 		mcp.WithString("data", mcp.Required(), mcp.Description(params.SecretData)),
+		mcp.WithTitleAnnotation("Create or update organization action secret"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 
 	DeleteOrgActionSecretTool = mcp.NewTool(
@@ -111,6 +136,11 @@ var (
 		mcp.WithDescription("Delete an action secret from an organization."),
 		mcp.WithString("org", mcp.Required(), mcp.Description(params.Org)),
 		mcp.WithString("secret_name", mcp.Required(), mcp.Description(params.SecretName)),
+		mcp.WithTitleAnnotation("Delete organization action secret"),
+		mcp.WithReadOnlyHintAnnotation(false),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithIdempotentHintAnnotation(false),
+		mcp.WithOpenWorldHintAnnotation(false),
 	)
 )
 

@@ -145,8 +145,8 @@ Classification rubric:
 | Class | Hints | Typical tools |
 | ----- | ----- | ------------- |
 | Read-only | `readOnly=true, destructive=false, idempotent=true` | `list_*`, `get_*`, `search_*`, `download_*_attachment`, `check_*` |
-| Mutating | `readOnly=false, destructive=false` | `create_*`, `edit_*`/`update_*`, `add_*`, `remove_*`, `set_*`, `merge_pull_request`, `fork_repo`, `issue_state_change`, stopwatch controls |
-| Destructive | `readOnly=false, destructive=true, idempotent=false` | `delete_*`, `reset_issue_time` |
+| Mutating | `readOnly=false, destructive=false` | `create_*`, `edit_*`/`update_*`, `add_*`, `remove_*`, `set_*`, `fork_repo`, `issue_state_change`, stopwatch controls |
+| Destructive | `readOnly=false, destructive=true, idempotent=false` | `delete_*`, `reset_issue_time`, `merge_pull_request`, `create_or_update_*_action_secret` |
 
 Rules that cut across the classes:
 
@@ -154,9 +154,28 @@ Rules that cut across the classes:
   configured Forgejo instance.
 - `idempotentHint=true` on a mutating tool only when replaying the same call
   has no additional effect: in-place edits, label add/remove, mark-as-read,
-  same-state transitions. `false` for creates, comments, uploads, merges, and
-  git-content writes (`create_file`, `update_file`, `update_wiki_page` — a
-  replay can create another commit).
+  same-state transitions. `false` for creates, comments, uploads, merges,
+  and git-content writes (`create_file`, `update_file`, `update_wiki_page` —
+  a replay can create another commit).
+- `destructiveHint=true` is for operations that may destroy or irrecoverably
+  lose data. Three shapes qualify:
+  - removals — `delete_*`, `reset_issue_time`;
+  - unrecoverable overwrites — `create_or_update_*_action_secret`: Forgejo
+    never returns a secret's value, so overwriting one loses the old value
+    for good, and the tool cannot tell a create from an overwrite;
+    `destructive=true` is what makes clients ask for confirmation here, and
+    the class pairs it with `idempotent=false` — deliberately conservative
+    for a secrets write, even though replaying identical arguments would
+    converge;
+  - hard-to-undo writes — `merge_pull_request`: undoing a merge means a new
+    revert commit re-touching main (and `delete_branch_after_merge` can drop
+    the head branch entirely), and clients that gate confirmation on
+    `destructiveHint` should prompt before merging; it is non-idempotent
+    because replaying on an already-merged PR errors, and an error is not a
+    side effect.
+  Overwriting ordinary state in place — `edit_*`, `set_repo_topics` — stays
+  mutating, not destructive: the tool's subject survives and the same
+  arguments reach the same state.
 - Add the tool to the golden lists in
   [operation/tool_annotations_test.go](operation/tool_annotations_test.go)
   (class list, plus `wantMutatingIdempotent` if replay-safe). The test fails

@@ -227,6 +227,10 @@ func registeredTools(t *testing.T) map[string]mcp.Tool {
 }
 
 // classOf maps every golden tool name to its class and fails on duplicates.
+// It also pins wantMutatingIdempotent to the mutating class: an entry that
+// names no golden tool (stale after a rename or removal), names a non-mutating
+// tool, or duplicates an earlier entry would otherwise be silently ignored by
+// TestToolAnnotationValues, which only looks the list up per registered tool.
 func classOf(t *testing.T) map[string]string {
 	t.Helper()
 	class := make(map[string]string, len(wantReadOnly)+len(wantMutating)+len(wantDestructive))
@@ -242,6 +246,22 @@ func classOf(t *testing.T) map[string]string {
 	add(wantReadOnly, "read-only")
 	add(wantMutating, "mutating")
 	add(wantDestructive, "destructive")
+
+	seen := make(map[string]bool, len(wantMutatingIdempotent))
+	for _, n := range wantMutatingIdempotent {
+		if seen[n] {
+			t.Errorf("tool %q appears more than once in wantMutatingIdempotent", n)
+		}
+		seen[n] = true
+		c, ok := class[n]
+		if !ok {
+			t.Errorf("tool %q is in wantMutatingIdempotent but in no golden list", n)
+			continue
+		}
+		if c != "mutating" {
+			t.Errorf("tool %q is in wantMutatingIdempotent but classified %s; only mutating tools may be listed there", n, c)
+		}
+	}
 	return class
 }
 

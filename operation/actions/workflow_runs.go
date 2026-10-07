@@ -100,7 +100,7 @@ func ListWorkflowRunsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	}
 	resp, _, err := client.ListRepoActionRuns(owner, repo, opt)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("failed to list workflow runs: %w", err))
+		return to.ErrorResult(withActionsDisabledHint(ctx, owner, repo, fmt.Errorf("failed to list workflow runs: %w", err)))
 	}
 
 	if len(resp.WorkflowRuns) == 0 {
@@ -154,7 +154,7 @@ func GetWorkflowRunFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallTo
 	}
 	run, _, err := client.GetRepoActionRun(owner, repo, runID)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("failed to get workflow run: %w", err))
+		return to.ErrorResult(withActionsDisabledHint(ctx, owner, repo, fmt.Errorf("failed to get workflow run: %w", err)))
 	}
 
 	duration := "N/A"

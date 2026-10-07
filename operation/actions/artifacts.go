@@ -111,7 +111,7 @@ func ListActionRunArtifactsFn(ctx context.Context, req mcp.CallToolRequest) (*mc
 	artifacts := make([]actionArtifact, 0)
 	header, err := forgejo.DoJSONWithHeader(ctx, http.MethodGet, path, nil, &artifacts)
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("list action run artifacts: %w", err))
+		return to.ErrorResult(withActionsDisabledHint(ctx, owner, repo, fmt.Errorf("list action run artifacts: %w", err)))
 	}
 	// A JSON null body unmarshals onto a nil slice and overwrites the make above.
 	if artifacts == nil {
@@ -144,7 +144,7 @@ func GetActionArtifactFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	path := forgejo.APIPath("repos", owner, repo, "actions", "artifacts", artifactID)
 	var artifact actionArtifact
 	if err := forgejo.DoJSON(ctx, http.MethodGet, path, nil, &artifact); err != nil {
-		return to.ErrorResult(fmt.Errorf("get action artifact: %w", err))
+		return to.ErrorResult(withActionsDisabledHint(ctx, owner, repo, fmt.Errorf("get action artifact: %w", err)))
 	}
 	return to.TextResult(artifact)
 }

@@ -127,7 +127,7 @@ func ListActionRunJobsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Cal
 	path := forgejo.APIPath("repos", owner, repo, "actions", "runs", runID, "jobs")
 	allJobs := make([]actionRunJob, 0)
 	if err := forgejo.DoJSON(ctx, http.MethodGet, path, nil, &allJobs); err != nil {
-		return to.ErrorResult(fmt.Errorf("list action run jobs: %w", err))
+		return to.ErrorResult(withActionsDisabledHint(ctx, owner, repo, fmt.Errorf("list action run jobs: %w", err)))
 	}
 
 	start64 := int64(page-1) * int64(limit)
@@ -194,7 +194,7 @@ func GetActionJobLogsFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.Call
 	}
 	resp, err := forgejo.DoAPIRaw(ctx, path, "text/plain", byteRange, int64(maxBytes))
 	if err != nil {
-		return to.ErrorResult(fmt.Errorf("get action job logs: %w", err))
+		return to.ErrorResult(withActionsDisabledHint(ctx, owner, repo, fmt.Errorf("get action job logs: %w", err)))
 	}
 
 	startByte, endByte, totalBytes, err := responseByteRange(resp)

@@ -25,6 +25,7 @@ import (
 	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/forgejo"
 	"git.b4mad.industries/agentic-forges/forgejo-mcp/v3/pkg/log"
 
+	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 )
 
@@ -390,5 +391,30 @@ func newMCPServer(version string) *server.MCPServer {
 		version,
 		server.WithLogging(),
 		server.WithResourceCapabilities(false, false),
+		InBandToolErrors(),
 	)
+}
+
+// InBandToolErrors is a server option that converts tool-handler errors into
+// in-band tool error results. Without it mcp-go answers a failed tool call
+// with the JSON-RPC protocol error -32603 ("Server internal error"), which
+// hides the actionable message — a forge 404 because the repo has Actions
+// disabled, say — from the client. Per the MCP spec, tool *execution* errors
+// belong in the result with IsError=true; protocol errors are for malformed
+// requests.
+func InBandToolErrors() server.ServerOption {
+	return server.WithToolHandlerMiddleware(inBandToolErrorsMiddleware())
+}
+
+func inBandToolErrorsMiddleware() server.ToolHandlerMiddleware {
+	return func(next server.ToolHandlerFunc) server.ToolHandlerFunc {
+		return func(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+			res, err := next(ctx, req)
+			if err == nil {
+				return res, nil
+			}
+			log.Errorf("tool %s failed: %v", req.Params.Name, err)
+			return mcp.NewToolResultError(err.Error()), nil
+		}
+	}
 }

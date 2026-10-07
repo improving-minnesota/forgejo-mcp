@@ -132,6 +132,18 @@ func MyToolFn(ctx context.Context, req mcp.CallToolRequest) (*mcp.CallToolResult
 }
 ```
 
+#### Handler Errors Surface In-Band
+
+Handlers return errors via `to.ErrorResult` and that is all they need to do.
+The `InBandToolErrors` server middleware (see `operation/operation.go`)
+converts every handler error into a `CallToolResult` with `IsError=true`
+carrying the error text. Without it, mcp-go answers a failed tool call with
+the JSON-RPC protocol error -32603 ("Server internal error"), which hides the
+actionable message — a forge 404 because the repo has Actions disabled, say —
+from the client. Do not return validation or API failures as anything other
+than a handler error, and do not build `NewToolResultError` results by hand in
+handlers.
+
 #### Tool Annotations Are Required
 
 Every `mcp.NewTool()` MUST declare accurate annotations. They are hints, but

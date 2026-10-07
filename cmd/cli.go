@@ -114,7 +114,7 @@ func RunCLI(version string) {
 
 	// Build the MCPServer and register tools with domain tracking.
 	flagPkg.Version = version
-	mcpSrv := server.NewMCPServer("Forgejo MCP Server", version, server.WithLogging())
+	mcpSrv := server.NewMCPServer("Forgejo MCP Server", version, server.WithLogging(), operation.InBandToolErrors())
 	registerToolsWithDomains(mcpSrv)
 
 	switch command {
@@ -331,7 +331,11 @@ func cliExec(s *server.MCPServer, toolName, argsJSON, outputMode string) error {
 	// Call the handler.
 	result, err := st.Handler(context.Background(), req)
 	if err != nil {
-		return fmt.Errorf("tool execution failed: %w", err)
+		// Mirror the server's InBandToolErrors middleware: cliExec calls the
+		// registered handler directly, so the middleware that turns handler
+		// errors into in-band results on the MCP wire never runs here.
+		result = mcp.NewToolResultError(err.Error())
+		err = nil
 	}
 
 	// Check IsError flag.

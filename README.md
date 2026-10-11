@@ -335,9 +335,10 @@ List all my repositories
 | `get_file_content` | Get the content of a file. Optional `start_line`/`end_line` request a 1-indexed inclusive line range (clamps to file extent; ignored when `with_metadata=true`). |
 | `list_repo_contents` | List files and directories at a path. `path=""` lists the repository root. Returns one level; for a full tree use `get_repo_tree` with `recursive=true`. |
 | `get_repo_tree` | Get the Git tree. `recursive=true` returns the complete file tree in one response (subject to the server's tree-endpoint size cap); `recursive=false` (default) returns one level. |
-| `create_file` | Create a new file |
-| `update_file` | Update an existing file |
+| `create_file` | Create a new file. Supply exactly one of plain-text `content` or binary-safe `content_base64` (strict standard Base64). |
+| `update_file` | Update an existing file. Supply exactly one of plain-text `content` or binary-safe `content_base64` (strict standard Base64). |
 | `delete_file` | Delete a file |
+| `change_files` | Atomically create, update, and delete multiple files in one native Forgejo commit; create/update operations accept `content` or `content_base64`. |
 | **Commits** | |
 | `list_repo_commits` | List commits in a repository |
 | `get_commit_statuses` | List per-context commit statuses for a full 40-character SHA. Bounded by `page` (default 1) + `limit` (default 30, maximum 50); returns `{sha, statuses, page, limit, count, total_count}` — `total_count` is present only when Forgejo reports `X-Total-Count`. Combined aggregate stays on the commit status resource. Not Actions runs (`list_workflow_runs`). |
@@ -355,16 +356,16 @@ List all my repositories
 | `add_issue_dependency` | Make one issue depend on another. The dependency may live in a different repository: optional `depends_on_owner`/`depends_on_repo` default to `owner`/`repo`. |
 | `remove_issue_dependency` | Remove a dependency from an issue. For a cross-repo dependency, optional `dependency_owner`/`dependency_repo` default to `owner`/`repo`. |
 | `list_repo_milestones` | List milestones with their IDs (use with `update_issue`) |
-| `list_repo_labels` | List labels with their IDs. Merges org-level labels for org-owned repos (set `include_org_labels=false` to opt out). Each entry carries a `scope` field (`"repo"` or `"org"`). |
-| `list_org_labels` | List organization-level labels with their IDs. The assignment tools accept label names directly, so this is for discovery and for the rare name that exists in both the repo and the org scope. |
-| `create_repo_label` | Create a repository label (`name`, `color` as 6-digit hex, optional `description`). Returns the numeric `id`; `add_issue_labels` also takes the name. |
-| `edit_repo_label` | Edit a repository label (PATCH — only supplied fields change: `name`, `color`, `description`). |
+| `list_repo_labels` | List labels with their IDs. Merges org-level labels for org-owned repos (set `include_org_labels=false` to opt out). Each entry carries a `scope` field (`"repo"` or `"org"`), plus `exclusive` and `is_archived` (`false` is present, not omitted). |
+| `list_org_labels` | List organization-level labels with their IDs. The assignment tools accept label names directly, so this is for discovery and for the rare name that exists in both the repo and the org scope. Each entry includes `exclusive` and `is_archived`. |
+| `create_repo_label` | Create a repository label (`name`, `color` as 6-digit hex, optional `description`, `exclusive`, `is_archived`). `exclusive=true` requires a scoped name (a `/` not at either end). Returns the numeric `id`; `add_issue_labels` also takes the name. |
+| `edit_repo_label` | Edit a repository label (PATCH — only supplied fields change: `name`, `color`, `description`, `exclusive`, `is_archived`). Exclusive-only edit does not re-read the current name. |
 | `delete_repo_label` | Delete a repository label. Refuses by default when the label is in use (reports count); set `delete_mode=force` to override. |
-| `get_repo_label` | Get a single repository label by numeric `id`. |
+| `get_repo_label` | Get a single repository label by numeric `id`. Includes `exclusive` and `is_archived`. |
 | `create_org_label` | Create an organization-level label. Same fields as `create_repo_label`. |
-| `edit_org_label` | Edit an organization-level label (PATCH semantics). |
+| `edit_org_label` | Edit an organization-level label (PATCH semantics, including `exclusive` and `is_archived`). |
 | `delete_org_label` | Delete an organization-level label. In-use guard counts across visible org repos (best-effort); `delete_mode=force` overrides. |
-| `get_org_label` | Get a single organization-level label by numeric `id`. |
+| `get_org_label` | Get a single organization-level label by numeric `id`. Includes `exclusive` and `is_archived`. |
 | **Comments** | |
 | `list_issue_comments` | List comments on an issue or PR |
 | `get_issue_comment` | Get a specific comment |
@@ -395,8 +396,8 @@ List all my repositories
 | `list_package_files` | List files of one package version. Client-paged via `page`/`limit` (default 30, max 50); envelope `{files, page, limit, count, has_next, total_count}` (`total_count` is the fetched list length) |
 | **Actions** | |
 | `dispatch_workflow` | Trigger a workflow run via `workflow_dispatch` event |
-| `list_workflow_runs` | List workflow runs with optional filtering by status, event, or SHA |
-| `get_workflow_run` | Get details of a specific workflow run by ID |
+| `list_workflow_runs` | List workflow runs with optional filtering by status, event, run number, or SHA |
+| `get_workflow_run` | Get details of a specific workflow run by database ID |
 | `list_action_run_jobs` | List jobs for a Forgejo v16+ workflow run with client-side `page` and `limit` bounds |
 | `get_action_job_logs` | Read a Forgejo v16+ job log with resumable `offset` and `max_bytes` bounds; defaults to the tail |
 | `cancel_workflow_run` | Cancel a pending or running workflow run. Already-finished runs also return success (HTTP 204); the run is left unchanged |
@@ -555,6 +556,11 @@ forgejo-mcp --cli list_workflow_runs \
 forgejo-mcp --cli list_workflow_runs \
   --args '{"owner":"goern","repo":"forgejo-mcp","status":"failure"}' \
   --output=text
+
+# Run-scoped tools (list_action_run_jobs, cancel_workflow_run, ...) take the
+# database run ID printed by list_workflow_runs (e.g. #2671), not the per-repo run
+# number in the web URL (.../actions/runs/222). To map a web-URL number to a
+# run ID, add "run_number":222 to the list_workflow_runs args.
 
 # List jobs and inspect the tail of a failed job (Forgejo v16+)
 forgejo-mcp --cli list_action_run_jobs \
@@ -942,8 +948,14 @@ forgejo-mcp is shaped by everyone who files issues, writes code, reviews PRs, an
 | [Massimo Fraschetti](https://codeberg.org/fraschetti) | Contributions |
 | [synath](https://codeberg.org/synath) (David Paul Turley) | Repository-scoped token support via `ServerVersion` probe (PR #112); merge status-code check (PR #113); Claude Desktop Extension (.mcpb) packaging (PR #118, #123); issue `due_date` + server-side sort (PR #483); bounded issue-list and comment-thread resources (PR #487); `total_count` on paginated envelopes from `X-Total-Count` (PR #507); `create_*_attachment` timeout hardening (PR #534, #536); cross-repo issue dependencies (PR #535) |
 | [BrilliantKahn](https://codeberg.org/BrilliantKahn) | `get_file_content` plain-text default (PR #116); `list_repo_contents` and `get_repo_tree` tools (PR #117). **First-ever open source contribution** — welcome aboard! 🎉 |
-| [nesvet](https://git.b4mad.industries/nesvet) (Eugene Nesvetaev) | `get_repo`/`edit_repo` (PR #527); repository topic tools (PR #528); Actions run cancel/delete and run artifacts (PR #533); `get_commit_statuses` (PR #542); package list/get/delete/files tools (PR #543); label names accepted on issue create, assignment and replace (PR #591) |
+| [nesvet](https://git.b4mad.industries/nesvet) (Eugene Nesvetaev) | `get_repo`/`edit_repo` (PR #527); repository topic tools (PR #528); Actions run cancel/delete and run artifacts (PR #533); `get_commit_statuses` (PR #542); package list/get/delete/files tools (PR #543); label names accepted on issue create, assignment and replace (PR #591); `exclusive` and `is_archived` on label create, edit and read (PR #592) |
 | [pisco](https://git.b4mad.industries/pisco) (Marco Pisco) | `file_path` uploads for issue, comment, and release attachments, with streaming multipart so large release assets no longer round-trip through base64 (PR #481) |
+| [paulgit](https://git.b4mad.industries/paulgit) (Paul Git) | Accurate MCP annotations and titles declared on every tool, with the classification rubric in DEVELOPER.md (PR #633, replacing #602) |
+| [derliebemarcus](https://git.b4mad.industries/derliebemarcus) (Marcus Pauli) | `change_files` atomic multi-file commits and binary-safe `content_base64` on `create_file`/`update_file` (PR #628); `apply_diff_patch` native diff-patch writes (PR #629) |
+| [MaherMakerHallerErne](https://git.b4mad.industries/MaherMakerHallerErne) (Maher Al Sairawan) | Issue dependency tools — `list_issue_dependencies`, `list_issue_dependents`, `add_issue_dependency`, `remove_issue_dependency` — with the correct Forgejo API contract (PR #335) |
+| [woozar](https://git.b4mad.industries/woozar) (Johannes Herrmann) | Wiki support over the direct REST API — page list/get/create/update/delete and revisions, with hardened contracts and pagination (PR #379) |
+| [dismantl](https://git.b4mad.industries/dismantl) (Dan Staples) | Bounded Forgejo v16+ workflow job logs — `list_action_run_jobs`, `get_action_job_logs` (PR #378) |
+| [matheusalves96](https://git.b4mad.industries/matheusalves96) (Matheus Alves) | Repository and organization Actions secrets tools — list, create-or-update, delete (PR #605) |
 
 ### Community contributors
 

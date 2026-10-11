@@ -61,6 +61,11 @@ var ChangeFilesTool = mcp.NewTool(
 			},
 		}),
 	),
+	mcp.WithTitleAnnotation("Change repository files"),
+	mcp.WithReadOnlyHintAnnotation(false),
+	mcp.WithDestructiveHintAnnotation(true),
+	mcp.WithIdempotentHintAnnotation(false),
+	mcp.WithOpenWorldHintAnnotation(false),
 )
 
 type changeFileOperation struct {

@@ -184,6 +184,7 @@ var (
 		"update_pull_request",
 	}
 	wantDestructive = []string{
+		"change_files",
 		"create_or_update_org_action_secret",
 		"create_or_update_repo_action_secret",
 		"delete_branch",

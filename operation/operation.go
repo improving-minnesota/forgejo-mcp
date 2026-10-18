@@ -221,6 +221,9 @@ func Run(transport, version string) error {
 	flag.Version = version
 	mcpServer = newMCPServer(version)
 	RegisterTool(mcpServer)
+	if err := registerExtraTools(mcpServer); err != nil {
+		return err
+	}
 	RegisterCoreResources(mcpServer)
 
 	// Checked again here, not only in cmd, so that no caller of Run can reach a

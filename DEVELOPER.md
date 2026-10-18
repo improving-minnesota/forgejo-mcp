@@ -148,6 +148,33 @@ func RegisterTools(s *server.MCPServer) {
 }
 ```
 
+### Adding Tools From a Downstream Build
+
+Tools that only make sense for one forge, such as wrappers around API endpoints a Forgejo fork adds, do not belong in this repository.
+A downstream build can register them through `operation.AddToolRegistrar` instead of forking, keeping its own `main` as a thin wrapper around this module:
+
+```go
+package main
+
+import (
+    "git.b4mad.industries/agentic-forges/forgejo-mcp/v3/cmd"
+    "git.b4mad.industries/agentic-forges/forgejo-mcp/v3/operation"
+
+    "example.org/forgejo-mcp-extras/pages"
+)
+
+var Version = "dev"
+
+func main() {
+    operation.AddToolRegistrar(pages.RegisterTool)
+    cmd.Execute(Version)
+}
+```
+
+The registrar runs against a scratch server, and only the tools it registers are copied into the real one, after the built-in tools.
+A tool whose name is already registered makes the server refuse to start, so an extension can never silently replace a built-in tool.
+Build the handlers with `forgejo.DoJSON` and `forgejo.APIPath` so they use the caller's request token, escape path segments and log calls exactly like the built-in tools.
+
 ## Key Patterns
 
 ### Parameter Handling
